@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class SpeedController : MonoBehaviour
 {
-    public GameSpeed CurrentGameSpeed { get; private set; }
+    public EGameSpeed CurrentGameSpeed { get; private set; }
 
-    public GameSpeed PreviousGameSpeed { get; private set; }
+    public EGameSpeed PreviousGameSpeed { get; private set; }
 
-    public GameSpeed NewGameSpeed { get; private set; }
+    public EGameSpeed NewGameSpeed { get; private set; }
 
     public void Update()
     {
@@ -21,8 +21,8 @@ public class SpeedController : MonoBehaviour
             PreviousGameSpeed = GameSpeedManager.Instance.PreviousGameSpeed;
 
             NewGameSpeed =
-                CurrentGameSpeed != GameSpeed.PAUSED
-                    ? GameSpeed.PAUSED
+                CurrentGameSpeed != EGameSpeed.PAUSED
+                    ? EGameSpeed.PAUSED
                     : PreviousGameSpeed;
 
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
@@ -30,26 +30,45 @@ public class SpeedController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            NewGameSpeed = GameSpeed.SLOW;
+            NewGameSpeed = EGameSpeed.SLOW;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            NewGameSpeed = GameSpeed.NORMAL;
+            NewGameSpeed = EGameSpeed.NORMAL;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            NewGameSpeed = GameSpeed.FAST;
+            NewGameSpeed = EGameSpeed.FAST;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            NewGameSpeed = GameSpeed.SUPERFAST;
+            NewGameSpeed = EGameSpeed.SUPERFAST;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
+        }
+
+        switch (GameSpeedManager.Instance.CurrentGameSpeed)
+        {
+            case EGameSpeed.PAUSED:
+                Debug.Log("Game is paused");
+                break;
+            case EGameSpeed.SLOW:
+                Debug.Log("Game is slow");
+                break;
+            case EGameSpeed.NORMAL:
+                Debug.Log("Game is normal");
+                break;
+            case EGameSpeed.FAST:
+                Debug.Log("Game is fast");
+                break;
+            case EGameSpeed.SUPERFAST:
+                Debug.Log("Game is superfast");
+                break;
         }
     }
 }

@@ -16,8 +16,8 @@ public class PlayerDisplay : MonoBehaviour
             Debug.LogError("Country data is null");
             return;
         }
-        PP_Title.text = countryData.title;
+
+        PP_Title.text = countryData.name;
         PP_Gold.text = countryData.money.ToString();
-        PP_Manpower.text = countryData.militarySize.ToString();
     }
 }

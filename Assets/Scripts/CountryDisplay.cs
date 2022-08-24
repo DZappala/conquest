@@ -12,7 +12,7 @@ public class CountryDisplay : MonoBehaviour
 
     public TMP_Text CP_Money;
 
-    public CountryData countryData;
+    public CountryData CountryData;
 
     public void Awake()
     {
@@ -29,7 +29,7 @@ public class CountryDisplay : MonoBehaviour
         if (CountryDisplayManager.Instance.IsCountrySelected)
         {
             //Hack is there a way to invoke this through the instance instead?
-            OnCountrySelected (countryData);
+            OnCountrySelected (CountryData);
         }
     }
 
@@ -50,15 +50,14 @@ public class CountryDisplay : MonoBehaviour
             gameObject.SetActive(true);
         }
 
-        countryData = countryDataFromEventParam;
+        CountryData = countryDataFromEventParam;
         UpdateCountryData();
     }
 
     public void UpdateCountryData()
     {
-        CP_Title.text = countryData.title;
-        CP_GovernmentType.text = countryData.governmentType;
-        CP_Manpower.text = countryData.militarySize.ToString();
-        CP_Money.text = countryData.money.ToString();
+        CP_Title.text = CountryData.name;
+        CP_GovernmentType.text = CountryData.governmentType;
+        CP_Money.text = CountryData.money.ToString();
     }
 }

@@ -46,7 +46,7 @@ public class SpeedDisplay : MonoBehaviour
         //set the opacity of the image whose name matches the current game speed to 1
         switch (GameSpeedManager.Instance.CurrentGameSpeed)
         {
-            case GameSpeed.PAUSED:
+            case EGameSpeed.PAUSED:
                 SD_Pause.color =
                     new Color(SD_PauseColor.r,
                         SD_PauseColor.g,
@@ -54,7 +54,7 @@ public class SpeedDisplay : MonoBehaviour
                         1);
                 image = SD_Pause;
                 break;
-            case GameSpeed.SLOW:
+            case EGameSpeed.SLOW:
                 SD_Slow.color =
                     new Color(SD_SlowColor.r,
                         SD_SlowColor.g,
@@ -62,7 +62,7 @@ public class SpeedDisplay : MonoBehaviour
                         1);
                 image = SD_Slow;
                 break;
-            case GameSpeed.NORMAL:
+            case EGameSpeed.NORMAL:
                 SD_Normal.color =
                     new Color(SD_NormalColor.r,
                         SD_NormalColor.g,
@@ -70,7 +70,7 @@ public class SpeedDisplay : MonoBehaviour
                         1);
                 image = SD_Normal;
                 break;
-            case GameSpeed.FAST:
+            case EGameSpeed.FAST:
                 SD_Fast.color =
                     new Color(SD_FastColor.r,
                         SD_FastColor.g,
@@ -78,7 +78,7 @@ public class SpeedDisplay : MonoBehaviour
                         1);
                 image = SD_Fast;
                 break;
-            case GameSpeed.SUPERFAST:
+            case EGameSpeed.SUPERFAST:
                 SD_SuperFast.color =
                     new Color(SD_SuperFastColor.r,
                         SD_SuperFastColor.g,
