@@ -95,7 +95,7 @@ public class Player : MonoBehaviour
                 var hitCountry = hit.transform.GetComponent<Country>();
                 CountryDisplayManager
                     .Instance
-                    .SetIsCountrySelected(hitCountry.countryData);
+                    .SetIsCountrySelected(hitCountry.CountryData);
             }
         }
         else

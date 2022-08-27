@@ -521,14 +521,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &221181921
 GameObject:
   m_ObjectHideFlags: 0
@@ -761,8 +753,7 @@ RectTransform:
   m_Children:
   - {fileID: 1893724320}
   - {fileID: 1657325616}
-  - {fileID: 420730701}
-  - {fileID: 925300836}
+  - {fileID: 2009923033}
   m_Father: {fileID: 0}
   m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -788,14 +779,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &261385455 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -3888481672020999207, guid: 0a0329b56e11c4af9ac05539d6c126a6, type: 3}
@@ -813,14 +796,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &275553436
 GameObject:
   m_ObjectHideFlags: 0
@@ -970,6 +945,52 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 7243324766535440047, guid: 0a0329b56e11c4af9ac05539d6c126a6, type: 3}
+--- !u!1 &374922612
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 374922614}
+  - component: {fileID: 374922613}
+  m_Layer: 0
+  m_Name: GameControl
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &374922613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 374922612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfa8d5837c7c449989e0946c449ad7c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DateDisplay: {fileID: 420730704}
+  CountryList: []
+--- !u!4 &374922614
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 374922612}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.791473, y: 9.5378475, z: -0.40968546}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 16
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &377061800
 GameObject:
   m_ObjectHideFlags: 0
@@ -1207,19 +1228,19 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 420730700}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1011661091}
-  m_Father: {fileID: 226904567}
-  m_RootOrder: 2
+  m_Father: {fileID: 2009923033}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 305.74542, y: 203.1171}
-  m_SizeDelta: {x: -611.4828, y: -406.2342}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 188.51721, y: 49.51001}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &420730702
 MonoBehaviour:
@@ -1768,14 +1789,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 1
-  taxRateSlider: {fileID: 0}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -2284,7 +2297,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 925300835}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2294,12 +2307,12 @@ RectTransform:
   - {fileID: 1468074792}
   - {fileID: 977981558}
   - {fileID: 1030301284}
-  m_Father: {fileID: 226904567}
-  m_RootOrder: 3
+  m_Father: {fileID: 2009923033}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -44.700012, y: 155.19939}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 89.40997, y: 27.699097}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &925300837
@@ -2476,14 +2489,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1001 &998233889
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2980,14 +2985,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1001 &1345476731
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3078,14 +3075,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &1390685173 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -3888481672020999207, guid: db37045fcffc6497987022f1a6dda206, type: 3}
@@ -3103,14 +3092,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &1402433612 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -3888481672020999207, guid: 96604b35d98054f4dbde4acd1b1dde2b, type: 3}
@@ -3128,14 +3109,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &1418951431
 GameObject:
   m_ObjectHideFlags: 0
@@ -3304,13 +3277,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ced897e5b918d41e2a92bf8bc67790b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  orthographicCamera: {fileID: 0}
+  orthographicCamera: {fileID: 1455655296}
   movementSpeed: 0.5
   originalMovementSpeed: 0
   movementTime: 5
   newPosition: {x: 0, y: 0, z: 0}
   zoomSpeedFactor: 5
-  countryDisplay: {fileID: 0}
+  countryDisplay: {fileID: 1893724319}
   selectedCountry: 0
 --- !u!114 &1455655294
 MonoBehaviour:
@@ -3811,14 +3784,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &1657325615
 GameObject:
   m_ObjectHideFlags: 0
@@ -3931,14 +3896,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &1893181997
 GameObject:
   m_ObjectHideFlags: 0
@@ -4139,6 +4096,111 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &2009923032
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2009923033}
+  - component: {fileID: 2009923036}
+  - component: {fileID: 2009923035}
+  - component: {fileID: 2009923034}
+  m_Layer: 5
+  m_Name: DateAndSpeedPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2009923033
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2009923032}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 420730701}
+  - {fileID: 925300836}
+  m_Father: {fileID: 226904567}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -94.26001, y: -40.14}
+  m_SizeDelta: {x: 188.51001, y: 80.28}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2009923034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2009923032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 2
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &2009923035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2009923032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &2009923036
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2009923032}
+  m_CullTransparentMesh: 1
 --- !u!1001 &2032378843
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4229,14 +4291,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Workers: 
-  PopulationWorkerModifier: 0
-  PopulationGrowthModifier: 0
-  AverageSkill: 0
-  taxRate: 0
-  TaxIncome: 0
-  isPlayerCountry: 0
-  taxRateSlider: {fileID: 0}
 --- !u!1 &2132484471
 GameObject:
   m_ObjectHideFlags: 0

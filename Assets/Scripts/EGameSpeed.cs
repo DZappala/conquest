@@ -1,4 +1,4 @@
-public enum GameSpeed
+public enum EGameSpeed
 {
     PAUSED,
     SLOW,

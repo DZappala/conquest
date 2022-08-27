@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class SpeedController : MonoBehaviour
 {
-    public GameSpeed CurrentGameSpeed { get; private set; }
+    public EGameSpeed CurrentGameSpeed { get; private set; }
 
-    public GameSpeed PreviousGameSpeed { get; private set; }
+    public EGameSpeed PreviousGameSpeed { get; private set; }
 
-    public GameSpeed NewGameSpeed { get; private set; }
+    public EGameSpeed NewGameSpeed { get; private set; }
 
     public void Update()
     {
@@ -15,14 +15,14 @@ public class SpeedController : MonoBehaviour
 
     public void SpeedInputHandler()
     {
+        CurrentGameSpeed = GameSpeedManager.Instance.CurrentGameSpeed;
+        PreviousGameSpeed = GameSpeedManager.Instance.PreviousGameSpeed;
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            CurrentGameSpeed = GameSpeedManager.Instance.CurrentGameSpeed;
-            PreviousGameSpeed = GameSpeedManager.Instance.PreviousGameSpeed;
-
             NewGameSpeed =
-                CurrentGameSpeed != GameSpeed.PAUSED
-                    ? GameSpeed.PAUSED
+                CurrentGameSpeed != EGameSpeed.PAUSED
+                    ? EGameSpeed.PAUSED
                     : PreviousGameSpeed;
 
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
@@ -30,26 +30,48 @@ public class SpeedController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            NewGameSpeed = GameSpeed.SLOW;
+            NewGameSpeed = EGameSpeed.SLOW;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            NewGameSpeed = GameSpeed.NORMAL;
+            NewGameSpeed = EGameSpeed.NORMAL;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            NewGameSpeed = GameSpeed.FAST;
+            NewGameSpeed = EGameSpeed.FAST;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            NewGameSpeed = GameSpeed.SUPERFAST;
+            NewGameSpeed = EGameSpeed.SUPERFAST;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
+        }
+    }
+
+    public static void SwitchGameSpeed(EGameSpeed newGameSpeed)
+    {
+        switch (newGameSpeed)
+        {
+            case EGameSpeed.PAUSED:
+                GameControl.DelayInSeconds = 0;
+                break;
+            case EGameSpeed.SLOW:
+                GameControl.DelayInSeconds = 5;
+                break;
+            case EGameSpeed.NORMAL:
+                GameControl.DelayInSeconds = 3.5f;
+                break;
+            case EGameSpeed.FAST:
+                GameControl.DelayInSeconds = 1.75f;
+                break;
+            case EGameSpeed.SUPERFAST:
+                GameControl.DelayInSeconds = 0.5f;
+                break;
         }
     }
 }

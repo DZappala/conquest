@@ -14,21 +14,21 @@ public class GameSpeedManager
         }
     }
 
-    public GameSpeed CurrentGameSpeed { get; private set; }
+    public EGameSpeed CurrentGameSpeed { get; private set; }
 
-    public GameSpeed PreviousGameSpeed { get; private set; }
+    public EGameSpeed PreviousGameSpeed { get; private set; }
 
-    public delegate void UseGameSpeed(GameSpeed newGameSpeed);
+    public delegate void UseGameSpeed(EGameSpeed newGameSpeed);
 
     public event UseGameSpeed OnGameSpeedChanged;
 
     private GameSpeedManager()
     {
-        CurrentGameSpeed = GameSpeed.PAUSED;
-        PreviousGameSpeed = GameSpeed.PAUSED;
+        CurrentGameSpeed = EGameSpeed.PAUSED;
+        PreviousGameSpeed = EGameSpeed.PAUSED;
     }
 
-    public void SetGameSpeed(GameSpeed newGameSpeed)
+    public void SetGameSpeed(EGameSpeed newGameSpeed)
     {
         if (newGameSpeed == CurrentGameSpeed)
         {

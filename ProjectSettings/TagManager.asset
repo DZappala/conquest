@@ -9,6 +9,7 @@ TagManager:
   - PlayerPanel
   - DatePanel
   - SpeedPanel
+  - LoadingBar
   layers:
   - Default
   - TransparentFX
