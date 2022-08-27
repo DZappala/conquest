@@ -14,6 +14,10 @@ public class LoadingScreenController : MonoBehaviour
     //public Image LoadingBar;
     // public static bool GameIsLoading = true;
     //public Animator LoadingBarAnimator;
+    public bool DatabaseCleared = false;
+
+    public bool DatabaseSetup = false;
+
     private static readonly IDriver
         driver =
             GraphDatabase
@@ -31,10 +35,10 @@ public class LoadingScreenController : MonoBehaviour
         //LoadingBarAnimator.SetTrigger("Start");
         //wait for database to clear and copy
         ClearDatabase();
-        yield return null;
+        yield return new WaitWhile(() => DatabaseCleared == false);
 
         CopyDatabase();
-        yield return null;
+        yield return new WaitWhile(() => DatabaseSetup == false);
 
         LoadNextLevel();
     }
@@ -68,6 +72,7 @@ public class LoadingScreenController : MonoBehaviour
         finally
         {
             await nationalbaselineSession.CloseAsync();
+            DatabaseCleared = true;
         }
     }
 
@@ -93,6 +98,7 @@ public class LoadingScreenController : MonoBehaviour
         {
             await neo4jSession.CloseAsync();
             await nationalbaselineSession.CloseAsync();
+            DatabaseSetup = true;
         }
     }
 }

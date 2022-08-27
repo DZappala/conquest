@@ -45,5 +45,6 @@ public class Country : MonoBehaviour
         {
             CountryData.money++;
         }
+        GameControl.CalculationsComplete++;
     }
 }

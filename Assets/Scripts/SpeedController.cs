@@ -61,16 +61,16 @@ public class SpeedController : MonoBehaviour
                 GameControl.DelayInSeconds = 0;
                 break;
             case EGameSpeed.SLOW:
-                GameControl.DelayInSeconds = 10;
-                break;
-            case EGameSpeed.NORMAL:
                 GameControl.DelayInSeconds = 5;
                 break;
+            case EGameSpeed.NORMAL:
+                GameControl.DelayInSeconds = 3.5f;
+                break;
             case EGameSpeed.FAST:
-                GameControl.DelayInSeconds = 2;
+                GameControl.DelayInSeconds = 1.75f;
                 break;
             case EGameSpeed.SUPERFAST:
-                GameControl.DelayInSeconds = 1;
+                GameControl.DelayInSeconds = 0.5f;
                 break;
         }
     }

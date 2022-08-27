@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Neo4j.Driver;
 using UnityEngine;
-using Unity.VisualScripting;
+using UnityEngine.Assertions;
 
 public class GameControl : MonoBehaviour
 {
@@ -16,9 +16,15 @@ public class GameControl : MonoBehaviour
 
     public List<Country> CountryList;
 
-    public static int DelayInSeconds;
+    public static float DelayInSeconds;
 
     public bool CountryUpdating;
+
+    public static int DownloadsComplete = 0;
+
+    public static int CalculationsComplete = 0;
+
+    public static int UploadsComplete = 0;
 
     private static readonly IDriver
         driver =
@@ -83,7 +89,6 @@ public class GameControl : MonoBehaviour
 
             while (await resultCursor.FetchAsync())
             {
-                Debug.Log($"{resultCursor.Current[0].As<INode>()["tag"]}");
                 await country
                     .ParseCountryData(resultCursor
                         .Current[0]
@@ -93,27 +98,23 @@ public class GameControl : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError(e.Message + e.StackTrace);
+            Debug.LogError(e.Message);
+            Debug.LogError(e.StackTrace);
         }
         finally
         {
             await session.CloseAsync();
+            DownloadsComplete++;
         }
     }
 
     //3. Calculate any changes to the countryData
     //4. Upload any changes to the countryData to the database
-    public async Task UploadCountryData(Country country)
+    public async void UploadCountryData(Country country)
     {
-        if (country.CountryData == null)
-        {
-            Debug
-                .Log("Upload: countryData is null for " +
-                country.CountryData.name);
-            return;
-        }
-
-        Dictionary<string, object> properties =
+        //FIXME is not uploading data to the database by prop. Seems to be running the upload method but skipping any uploads
+        //convert the CountryData of a country to a dictionary for uploading
+        Dictionary<string, object> countryDataProps =
             country
                 .CountryData
                 .GetType()
@@ -124,48 +125,53 @@ public class GameControl : MonoBehaviour
         IAsyncSession session =
             driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
 
+        Assert
+            .IsNotNull(country.CountryData,
+            "Country Data was null for " + country.name);
+
         try
         {
-            foreach (var prop in properties)
-            {
-                IResultCursor cursor =
-                    await session
-                        .RunAsync("MATCH (n:Country {name: '$CountryName'}) SET n.$prop = $value",
+            await session
+                .WriteTransactionAsync(async tx =>
+                {
+                    await tx
+                        .RunAsync(@"MERGE (c:Country {name: $CountryName})
+                    SET c = $CountryData",
                         new Dictionary<string, object> {
                             { "CountryName", country.CountryData.name },
-                            { "prop", prop.Key },
-                            { "value", prop.Value }
+                            { "CountryData", countryDataProps }
                         });
-            }
+                });
         }
         catch (Exception e)
         {
-            Debug.Log(e.Message);
+            Debug.LogError(e.Message);
+            Debug.LogError(e.StackTrace);
         }
         finally
         {
             await session.CloseAsync();
+            UploadsComplete++;
         }
     }
 
     //When all the tasks are completed, the next day begins.
     private IEnumerator DatabaseSetupProcess()
     {
-        Debug.Log("Country setup process has started");
-
-        //TODO, copy database download process from below
-        // foreach (Country country in CountryList)
-        // {
-        //     Task download = DownloadCountryData(country);
-        // }
-        // yield return Task.WhenAll(CountryList.Select(DownloadCountryData));
-        yield return null; //DEBUG
+        //Download the country data from the database
+        foreach (Country country in CountryList)
+        {
+            DownloadCountryData (country);
+        }
+        yield return new WaitUntil(() =>
+                    DownloadsComplete == CountryList.Count);
     }
 
-    private IEnumerator CountryDataProcessor(int delay)
+    private IEnumerator CountryDataProcessor(float delay)
     {
+        var enumeratorStart = Time.realtimeSinceStartup;
+
         //FIXME: this isn't downloading or uploading data. it's just incrementing the date. It needs to perform these actions synchronously.
-        Debug.Log("Country data processor started");
         CountryUpdating = true;
 
         Date = Date.AddDays(1);
@@ -176,33 +182,44 @@ public class GameControl : MonoBehaviour
         foreach (Country country in CountryList)
         {
             DownloadCountryData (country);
-            Debug
-                .Assert(country.CountryData.tag != null,
-                "Download was not completed successfully");
-            yield return null;
         }
 
-        yield return null;
+        yield return new WaitUntil(() =>
+                    DownloadsComplete == CountryList.Count);
+        DownloadsComplete = 0;
 
         foreach (Country country in CountryList)
         {
-            //calculate the changes to the countryData
-            Debug.Log("Calculating changes for " + country.CountryData.name);
+            Assert
+                .IsNotNull(country.CountryData.tag,
+                "Country Data was null for " + country.name);
 
+            //calculate the changes to the countryData
             country.CalculateCountryData();
         }
 
+        yield return new WaitUntil(() =>
+                    CalculationsComplete == CountryList.Count);
+        CalculationsComplete = 0;
+
         foreach (Country country in CountryList)
         {
-            Debug.Log("Uploading changes for " + country.CountryData.name);
-            Task upload = UploadCountryData(country);
+            //upload the changes to the database
+            UploadCountryData (country);
         }
 
-        yield return Task
-                .WhenAll(CountryList
-                    .Select(country => UploadCountryData(country)));
+        yield return new WaitUntil(() => UploadsComplete == CountryList.Count);
+        UploadsComplete = 0;
 
-        yield return new WaitForSecondsRealtime(delay);
+        if ((float)(Time.realtimeSinceStartup - enumeratorStart) > delay)
+        {
+            yield return null;
+        }
+        else
+        {
+            delay -= (float)(Time.realtimeSinceStartup - enumeratorStart);
+            yield return new WaitForSecondsRealtime(delay);
+        }
 
         CountryUpdating = false;
     }
