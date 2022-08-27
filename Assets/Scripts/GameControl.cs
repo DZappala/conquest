@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Neo4j.Driver;
 using UnityEngine;
+using Unity.VisualScripting;
 
 public class GameControl : MonoBehaviour
 {
@@ -15,9 +16,9 @@ public class GameControl : MonoBehaviour
 
     public List<Country> CountryList;
 
-    private Coroutine _useCountryData;
+    public static int DelayInSeconds;
 
-    private Coroutine _initializeGame;
+    public bool CountryUpdating;
 
     private static readonly IDriver
         driver =
@@ -27,8 +28,8 @@ public class GameControl : MonoBehaviour
 
     public void Awake()
     {
-        DateDisplay = FindObjectOfType<DateDisplay>();
         Date = new DateTime(1500, 1, 1);
+        SpeedController.SwitchGameSpeed(EGameSpeed.PAUSED);
     }
 
     public void Start()
@@ -37,54 +38,62 @@ public class GameControl : MonoBehaviour
         CountryList = FindObjectsOfType<Country>().ToList();
 
         //set the date display text
-        UpdateDateDisplay();
-        _initializeGame = StartCoroutine(DatabaseSetupProcess());
+        UpdateDateDisplay (Date);
+        StartCoroutine(DatabaseSetupProcess());
     }
 
     //Increment the number of days passed by 1 each frame and wait for all the other functions to finish
     public void Update()
     {
-        Date = Date.AddDays(1);
-        UpdateDateDisplay();
-
-        _useCountryData = StartCoroutine(CountryDataProcessor());
+        if (
+            !CountryUpdating &&
+            GameSpeedManager.Instance.CurrentGameSpeed != EGameSpeed.PAUSED
+        )
+        {
+            StartCoroutine(CountryDataProcessor(DelayInSeconds));
+        }
     }
 
     //Every time the date is incremented, several tasks begin in sequential order.
     //1. Update the date display
-    private void UpdateDateDisplay()
+    public void UpdateDateDisplay(DateTime date)
     {
-        DateDisplay.UseDateDisplay();
+        DateDisplay.UseDateDisplay (date);
     }
 
     //2. Download the countryData from the database
-    private async void DownloadCountryData(Country country)
+    public async void DownloadCountryData(Country country)
     {
+        string query =
+            @"MATCH (c:Country) WHERE c.name = $CountryName
+            RETURN c";
+
+        IDictionary<string, object> parameters =
+            new Dictionary<string, object> {
+                { "CountryName", country.CountryData.name }
+            };
+
         IAsyncSession session =
             driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
+
         try
         {
-            //get the country data from the database matching the country's name
-            IResultCursor cursor =
-                await session
-                    .RunAsync("MATCH (n:Country {name:'$CountryName'}) RETURN n",
-                    new Dictionary<string, object> {
-                        { "CountryName", country.gameObject.name }
-                    });
+            IResultCursor resultCursor =
+                await session.RunAsync(query, parameters);
 
-            while (await cursor.FetchAsync())
+            while (await resultCursor.FetchAsync())
             {
-                Debug.Log("Found country data for " + country.gameObject.name);
-                country
-                    .ParseCountryData(cursor
-                        .Current["n"]
+                Debug.Log($"{resultCursor.Current[0].As<INode>()["tag"]}");
+                await country
+                    .ParseCountryData(resultCursor
+                        .Current[0]
                         .As<INode>()
                         .Properties);
             }
         }
         catch (Exception e)
         {
-            Debug.Log(e.Message);
+            Debug.LogError(e.Message + e.StackTrace);
         }
         finally
         {
@@ -93,24 +102,14 @@ public class GameControl : MonoBehaviour
     }
 
     //3. Calculate any changes to the countryData
-    private void UseCalculateCountryData()
-    {
-        //foreach country in the country list
-        foreach (Country country in CountryList)
-        {
-            //calculate the changes to the countryData
-            country.CalculateCountryData();
-        }
-    }
-
     //4. Upload any changes to the countryData to the database
-    private async void UploadCountryData(Country country)
+    public async Task UploadCountryData(Country country)
     {
         if (country.CountryData == null)
         {
             Debug
                 .Log("Upload: countryData is null for " +
-                country.gameObject.name);
+                country.CountryData.name);
             return;
         }
 
@@ -133,20 +132,10 @@ public class GameControl : MonoBehaviour
                     await session
                         .RunAsync("MATCH (n:Country {name: '$CountryName'}) SET n.$prop = $value",
                         new Dictionary<string, object> {
-                            { "CountryName", country.gameObject.name },
+                            { "CountryName", country.CountryData.name },
                             { "prop", prop.Key },
                             { "value", prop.Value }
                         });
-                while (await cursor.FetchAsync())
-                {
-                    Debug
-                        .Log("UL: " +
-                        country.gameObject.name +
-                        ": " +
-                        prop.Key +
-                        " = " +
-                        prop.Value);
-                }
             }
         }
         catch (Exception e)
@@ -160,92 +149,61 @@ public class GameControl : MonoBehaviour
     }
 
     //When all the tasks are completed, the next day begins.
-    public async void ClearDatabase()
-    {
-        var nationalbaselineSession =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
-        try
-        {
-            IResultCursor nationalbaselineCursor =
-                await nationalbaselineSession
-                    .RunAsync("MATCH(a) -[r]-> (), (b) DELETE a, r, b");
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e.Message);
-        }
-        finally
-        {
-            Debug.Log("database was successfully cleared!");
-            await nationalbaselineSession.CloseAsync();
-        }
-    }
-
-    public async void CopyDatabase()
-    {
-        var neo4jSession = driver.AsyncSession(o => o.WithDatabase("neo4j"));
-        var nationalbaselineSession =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
-        try
-        {
-            IResultCursor neo4JCursor =
-                await neo4jSession
-                    .RunAsync("CALL apoc.export.graphml.all('countryData.graphml', {readLabels: true, useTypes: true})");
-            IResultCursor nationalbaselineCursor =
-                await nationalbaselineSession
-                    .RunAsync("CALL apoc.import.graphml('countryData.graphml', {readLabels: true, storeNodeIds: true})");
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e.Message);
-        }
-        finally
-        {
-            Debug.Log("database was successfully copied!");
-            await neo4jSession.CloseAsync();
-            await nationalbaselineSession.CloseAsync();
-        }
-    }
-
     private IEnumerator DatabaseSetupProcess()
     {
-        Debug.Log("Database setup process started");
+        Debug.Log("Country setup process has started");
 
-        ClearDatabase();
-        CopyDatabase();
-
-        for (int i = 0; i < CountryList.Count; i++)
-        {
-            Debug
-                .Log("Downloading country data for " +
-                CountryList[i].gameObject.name);
-
-            DownloadCountryData(CountryList[i]);
-            yield return null;
-        }
+        //TODO, copy database download process from below
+        // foreach (Country country in CountryList)
+        // {
+        //     Task download = DownloadCountryData(country);
+        // }
+        // yield return Task.WhenAll(CountryList.Select(DownloadCountryData));
+        yield return null; //DEBUG
     }
 
-    private IEnumerator CountryDataProcessor()
+    private IEnumerator CountryDataProcessor(int delay)
     {
+        //FIXME: this isn't downloading or uploading data. it's just incrementing the date. It needs to perform these actions synchronously.
         Debug.Log("Country data processor started");
+        CountryUpdating = true;
 
-        for (int i = 0; i < CountryList.Count; i++)
+        Date = Date.AddDays(1);
+        UpdateDateDisplay (Date);
+
+        yield return new WaitForSeconds(.01f);
+
+        foreach (Country country in CountryList)
         {
+            DownloadCountryData (country);
             Debug
-                .Log("Downloading country data for " +
-                CountryList[i].gameObject.name);
-            DownloadCountryData(CountryList[i]);
-
-            Debug
-                .Log("Calculating country data for " +
-                CountryList[i].gameObject.name);
-            UseCalculateCountryData();
-
-            Debug
-                .Log("Uploading country data for " +
-                CountryList[i].gameObject.name);
-            UploadCountryData(CountryList[i]);
+                .Assert(country.CountryData.tag != null,
+                "Download was not completed successfully");
             yield return null;
         }
+
+        yield return null;
+
+        foreach (Country country in CountryList)
+        {
+            //calculate the changes to the countryData
+            Debug.Log("Calculating changes for " + country.CountryData.name);
+
+            country.CalculateCountryData();
+        }
+
+        foreach (Country country in CountryList)
+        {
+            Debug.Log("Uploading changes for " + country.CountryData.name);
+            Task upload = UploadCountryData(country);
+        }
+
+        yield return Task
+                .WhenAll(CountryList
+                    .Select(country => UploadCountryData(country)));
+
+        yield return new WaitForSecondsRealtime(delay);
+
+        CountryUpdating = false;
     }
 }

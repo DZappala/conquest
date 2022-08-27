@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class Country : MonoBehaviour
@@ -8,31 +10,33 @@ public class Country : MonoBehaviour
     public void Awake()
     {
         gameObject.tag = "Country";
+        CountryData = new()
+        {
+            name = gameObject.name
+        };
         gameObject.AddComponent<PolygonCollider2D>();
     }
 
     public void Start()
     {
-        CountryData =
-            new CountryData(" ", " ", " ", " ", " ", 0, " ", 0, 0, 0, 0, 0, 0);
     }
 
-    public void ParseCountryData(IReadOnlyDictionary<string, object> record)
+    public async Task<Task> ParseCountryData(IReadOnlyDictionary<string, object> record)
     {
-        CountryData =
-            new CountryData(record["tag"].ToString(),
-                record["name"].ToString(),
-                record["capital"].ToString(),
-                record["currency"].ToString(),
-                record["language"].ToString(),
-                double.Parse(record["population"].ToString()),
-                record["governmentType"].ToString(),
-                double.Parse(record["money"].ToString()),
-                double.Parse(record["impoverished"].ToString()),
-                double.Parse(record["workers"].ToString()),
-                double.Parse(record["merchants"].ToString()),
-                double.Parse(record["aristocrats"].ToString()),
-                double.Parse(record["government"].ToString()));
+       await Task.Run(() => { foreach (var keyValuePair in record)
+        {
+            FieldInfo _fieldInfo = CountryData.GetType().GetField(keyValuePair.Key);
+            object _value = keyValuePair.Value;
+
+            if (_fieldInfo != null && _fieldInfo.GetValue(CountryData) != _value)
+            {
+                _fieldInfo
+                    .SetValue(CountryData, _value);
+            }
+        }
+       });
+
+       return Task.CompletedTask;
     }
 
     public void CalculateCountryData()

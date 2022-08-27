@@ -15,11 +15,11 @@ public class SpeedController : MonoBehaviour
 
     public void SpeedInputHandler()
     {
+        CurrentGameSpeed = GameSpeedManager.Instance.CurrentGameSpeed;
+        PreviousGameSpeed = GameSpeedManager.Instance.PreviousGameSpeed;
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            CurrentGameSpeed = GameSpeedManager.Instance.CurrentGameSpeed;
-            PreviousGameSpeed = GameSpeedManager.Instance.PreviousGameSpeed;
-
             NewGameSpeed =
                 CurrentGameSpeed != EGameSpeed.PAUSED
                     ? EGameSpeed.PAUSED
@@ -51,23 +51,26 @@ public class SpeedController : MonoBehaviour
             NewGameSpeed = EGameSpeed.SUPERFAST;
             GameSpeedManager.Instance.SetGameSpeed (NewGameSpeed);
         }
+    }
 
-        switch (GameSpeedManager.Instance.CurrentGameSpeed)
+    public static void SwitchGameSpeed(EGameSpeed newGameSpeed)
+    {
+        switch (newGameSpeed)
         {
             case EGameSpeed.PAUSED:
-                Debug.Log("Game is paused");
+                GameControl.DelayInSeconds = 0;
                 break;
             case EGameSpeed.SLOW:
-                Debug.Log("Game is slow");
+                GameControl.DelayInSeconds = 10;
                 break;
             case EGameSpeed.NORMAL:
-                Debug.Log("Game is normal");
+                GameControl.DelayInSeconds = 5;
                 break;
             case EGameSpeed.FAST:
-                Debug.Log("Game is fast");
+                GameControl.DelayInSeconds = 2;
                 break;
             case EGameSpeed.SUPERFAST:
-                Debug.Log("Game is superfast");
+                GameControl.DelayInSeconds = 1;
                 break;
         }
     }

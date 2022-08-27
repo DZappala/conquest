@@ -24,6 +24,11 @@ public class SpeedDisplay : MonoBehaviour
 
     private Color SD_SuperFastColor;
 
+    public void Awake()
+    {
+        GameSpeedManager.Instance.OnGameSpeedChanged += OnGameSpeedChanged;
+    }
+
     public void Start()
     {
         SD_PauseColor = SD_Pause.color;
@@ -33,9 +38,15 @@ public class SpeedDisplay : MonoBehaviour
         SD_SuperFastColor = SD_SuperFast.color;
     }
 
-    public void Update()
+    public void OnDestroy()
+    {
+        GameSpeedManager.Instance.OnGameSpeedChanged -= OnGameSpeedChanged;
+    }
+
+    public void OnGameSpeedChanged(EGameSpeed newGameSpeed)
     {
         UseSpeedDisplay();
+        SpeedController.SwitchGameSpeed(newGameSpeed);
     }
 
     public void UseSpeedDisplay()
