@@ -521,6 +521,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &221181921
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,6 +780,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &261385455 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -3888481672020999207, guid: 0a0329b56e11c4af9ac05539d6c126a6, type: 3}
@@ -796,6 +798,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &275553436
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,6 +979,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DateDisplay: {fileID: 420730704}
   CountryList: []
+  CountryUpdating: 0
 --- !u!4 &374922614
 Transform:
   m_ObjectHideFlags: 0
@@ -1789,6 +1793,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 1
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -2489,6 +2494,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1001 &998233889
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2985,6 +2991,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1001 &1345476731
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3075,6 +3082,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &1390685173 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -3888481672020999207, guid: db37045fcffc6497987022f1a6dda206, type: 3}
@@ -3092,6 +3100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &1402433612 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -3888481672020999207, guid: 96604b35d98054f4dbde4acd1b1dde2b, type: 3}
@@ -3109,6 +3118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &1418951431
 GameObject:
   m_ObjectHideFlags: 0
@@ -3784,6 +3794,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &1657325615
 GameObject:
   m_ObjectHideFlags: 0
@@ -3896,6 +3907,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &1893181997
 GameObject:
   m_ObjectHideFlags: 0
@@ -4291,6 +4303,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261622ca626554e39a8258d79fec075b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsPlayerCountry: 0
 --- !u!1 &2132484471
 GameObject:
   m_ObjectHideFlags: 0

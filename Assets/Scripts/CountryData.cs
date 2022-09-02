@@ -6,16 +6,15 @@ public class CountryData
 
     public string capital;
 
-    public string currency;
-
-    public string language;
-
+    //public string language;
     public double population;
 
     public string governmentType;
 
     public double money;
 
+    //public double GrowthRate; //TODO add to db
+    //public double GrowthMaximum; //TODO add to db
     //Stratum
     public double impoverished;
 

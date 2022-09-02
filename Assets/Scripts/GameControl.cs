@@ -14,17 +14,19 @@ public class GameControl : MonoBehaviour
 
     public DateDisplay DateDisplay;
 
-    public List<Country> CountryList;
+    private List<Country> CountryList;
+
+    private Dictionary<string, object> CountryDataFields;
 
     public static float DelayInSeconds;
 
-    public bool CountryUpdating;
+    private bool CountriesAreUpdating;
 
-    public static int DownloadsComplete = 0;
+    private static int DownloadsComplete = 0;
 
     public static int CalculationsComplete = 0;
 
-    public static int UploadsComplete = 0;
+    private static int UploadsComplete = 0;
 
     private static readonly IDriver
         driver =
@@ -51,13 +53,13 @@ public class GameControl : MonoBehaviour
     //Increment the number of days passed by 1 each frame and wait for all the other functions to finish
     public void Update()
     {
-        if (
-            !CountryUpdating &&
-            GameSpeedManager.Instance.CurrentGameSpeed != EGameSpeed.PAUSED
+        while (CountriesAreUpdating ||
+            GameSpeedManager.Instance.CurrentGameSpeed == EGameSpeed.PAUSED
         )
         {
-            StartCoroutine(CountryDataProcessor(DelayInSeconds));
+            return;
         }
+        StartCoroutine(CountryDataProcessor(DelayInSeconds));
     }
 
     //Every time the date is incremented, several tasks begin in sequential order.
@@ -85,7 +87,17 @@ public class GameControl : MonoBehaviour
         try
         {
             IResultCursor resultCursor =
-                await session.RunAsync(query, parameters);
+                await session
+                    .RunAsync(query, parameters)
+                    .ContinueWith(task =>
+                    {
+                        if (task.IsFaulted)
+                        {
+                            throw task.Exception;
+                        }
+
+                        return task.Result;
+                    });
 
             while (await resultCursor.FetchAsync())
             {
@@ -103,8 +115,12 @@ public class GameControl : MonoBehaviour
         }
         finally
         {
-            await session.CloseAsync();
-            DownloadsComplete++;
+            await session
+                .CloseAsync()
+                .ContinueWith(task =>
+                {
+                    DownloadsComplete++;
+                });
         }
     }
 
@@ -112,36 +128,34 @@ public class GameControl : MonoBehaviour
     //4. Upload any changes to the countryData to the database
     public async void UploadCountryData(Country country)
     {
-        //FIXME is not uploading data to the database by prop. Seems to be running the upload method but skipping any uploads
-        //convert the CountryData of a country to a dictionary for uploading
-        Dictionary<string, object> countryDataProps =
-            country
-                .CountryData
-                .GetType()
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .ToDictionary(prop => prop.Name,
-                prop => prop.GetValue(country.CountryData));
-
         IAsyncSession session =
             driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
 
-        Assert
-            .IsNotNull(country.CountryData,
-            "Country Data was null for " + country.name);
+        CountryDataFields = GetFields(country.CountryData);
+
+        string query =
+            "MATCH (c:Country) WHERE c.name = $CountryName SET c = $CountryData";
+
+        IDictionary<string, object> parameters =
+            new Dictionary<string, object> {
+                { "CountryName", country.CountryData.name },
+                { "CountryData", CountryDataFields }
+            };
 
         try
         {
-            await session
-                .WriteTransactionAsync(async tx =>
-                {
-                    await tx
-                        .RunAsync(@"MERGE (c:Country {name: $CountryName})
-                    SET c = $CountryData",
-                        new Dictionary<string, object> {
-                            { "CountryName", country.CountryData.name },
-                            { "CountryData", countryDataProps }
-                        });
-                });
+            IResultCursor resultCursor =
+                await session
+                    .RunAsync(query, parameters)
+                    .ContinueWith(task =>
+                    {
+                        if (task.IsFaulted)
+                        {
+                            throw task.Exception;
+                        }
+
+                        return task.Result;
+                    });
         }
         catch (Exception e)
         {
@@ -150,9 +164,26 @@ public class GameControl : MonoBehaviour
         }
         finally
         {
-            await session.CloseAsync();
-            UploadsComplete++;
+            await session
+                .CloseAsync()
+                .ContinueWith(task =>
+                {
+                    UploadsComplete++;
+                });
         }
+    }
+
+    private Dictionary<string, object> GetFields(CountryData countryData)
+    {
+        var type = countryData.GetType();
+
+        var fields =
+            type
+                .GetFields()
+                .ToDictionary(field => field.Name,
+                field => field.GetValue(countryData));
+
+        return fields;
     }
 
     //When all the tasks are completed, the next day begins.
@@ -167,14 +198,15 @@ public class GameControl : MonoBehaviour
                     DownloadsComplete == CountryList.Count);
     }
 
+    //FIXME this Enumerator is having trouble with waiting for each task to complete in sequential order.
     private IEnumerator CountryDataProcessor(float delay)
     {
-        var enumeratorStart = Time.realtimeSinceStartup;
-
-        //FIXME: this isn't downloading or uploading data. it's just incrementing the date. It needs to perform these actions synchronously.
-        CountryUpdating = true;
+        CountriesAreUpdating = true;
+        float enumeratorStart = Time.realtimeSinceStartup;
 
         Date = Date.AddDays(1);
+        Debug.Log("Date was incremented to " + Date.ToString("dd MMM yyyy"));
+
         UpdateDateDisplay (Date);
 
         yield return new WaitForSeconds(.01f);
@@ -182,45 +214,61 @@ public class GameControl : MonoBehaviour
         foreach (Country country in CountryList)
         {
             DownloadCountryData (country);
+            if (country.CountryData.tag == "IDF")
+            {
+                Debug.Log("Got Money for IDF: " + country.CountryData.money);
+            }
         }
 
         yield return new WaitUntil(() =>
                     DownloadsComplete == CountryList.Count);
+
         DownloadsComplete = 0;
 
         foreach (Country country in CountryList)
         {
             Assert
                 .IsNotNull(country.CountryData.tag,
-                "Country Data was null for " + country.name);
+                "Country Data was null for " + country.CountryData.name);
 
             //calculate the changes to the countryData
             country.CalculateCountryData();
+            if (country.CountryData.tag == "IDF")
+            {
+                Debug.Log("Got Money for IDF: " + country.CountryData.money);
+            }
         }
 
         yield return new WaitUntil(() =>
                     CalculationsComplete == CountryList.Count);
+
         CalculationsComplete = 0;
 
         foreach (Country country in CountryList)
         {
             //upload the changes to the database
             UploadCountryData (country);
+
+            //FIXME somehow this is not returning the correct value
+            if (country.CountryData.tag == "IDF")
+            {
+                Debug.Log("Got Money for IDF: " + country.CountryData.money);
+            }
         }
 
         yield return new WaitUntil(() => UploadsComplete == CountryList.Count);
         UploadsComplete = 0;
 
-        if ((float)(Time.realtimeSinceStartup - enumeratorStart) > delay)
+        float timeElapsed = Time.realtimeSinceStartup - enumeratorStart;
+        if (timeElapsed > delay)
         {
-            yield return null;
+            yield return CountriesAreUpdating = false;
         }
         else
         {
-            delay -= (float)(Time.realtimeSinceStartup - enumeratorStart);
+            delay -= timeElapsed;
             yield return new WaitForSecondsRealtime(delay);
+            yield return CountriesAreUpdating = false;
         }
-
-        CountryUpdating = false;
     }
 }

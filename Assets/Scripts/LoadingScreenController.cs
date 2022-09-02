@@ -1,13 +1,8 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Neo4j.Driver;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using Unity.VisualScripting;
 
 public class LoadingScreenController : MonoBehaviour
 {
@@ -31,6 +26,7 @@ public class LoadingScreenController : MonoBehaviour
 
     public IEnumerator StartDatabaseProcess()
     {
+        //TODO create loading animation
         //start the loading bar animation
         //LoadingBarAnimator.SetTrigger("Start");
         //wait for database to clear and copy
@@ -97,6 +93,7 @@ public class LoadingScreenController : MonoBehaviour
         finally
         {
             await neo4jSession.CloseAsync();
+            new WaitForSecondsRealtime(2);
             await nationalbaselineSession.CloseAsync();
             DatabaseSetup = true;
         }

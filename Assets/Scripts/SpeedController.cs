@@ -53,6 +53,7 @@ public class SpeedController : MonoBehaviour
         }
     }
 
+    //TODO integrate the SpeedDisplay function into this one, they use the same switch statement
     public static void SwitchGameSpeed(EGameSpeed newGameSpeed)
     {
         switch (newGameSpeed)

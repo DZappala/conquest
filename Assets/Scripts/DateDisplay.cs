@@ -8,6 +8,6 @@ public class DateDisplay : MonoBehaviour
 
     public void UseDateDisplay(DateTime date)
     {
-        DP_Date.text = date.ToString("dd/MM/yyyy");
+        DP_Date.text = date.ToString("dd MMM yyyy");
     }
 }

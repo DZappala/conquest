@@ -4,9 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class History : ScriptableObject {
-
+//FIXME I don't think this needs to be a scriptable object
+public class History : ScriptableObject
+{
+    //TODO implement history of countries
     public string feat;
+
     public string description;
+
     public string date;
 }
