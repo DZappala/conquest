@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using Neo4j.Driver;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -16,8 +14,6 @@ public class GameControl : MonoBehaviour
 
     private List<Country> CountryList;
 
-    private Dictionary<string, object> CountryDataFields;
-
     public static float DelayInSeconds;
 
     private bool CountriesAreUpdating;
@@ -27,12 +23,6 @@ public class GameControl : MonoBehaviour
     public static int CalculationsComplete = 0;
 
     private static int UploadsComplete = 0;
-
-    private static readonly IDriver
-        driver =
-            GraphDatabase
-                .Driver("bolt://localhost:7687",
-                AuthTokens.Basic("neo4j", "glory"));
 
     public void Awake()
     {
@@ -53,13 +43,16 @@ public class GameControl : MonoBehaviour
     //Increment the number of days passed by 1 each frame and wait for all the other functions to finish
     public void Update()
     {
-        while (CountriesAreUpdating ||
+        if (
+            CountriesAreUpdating ||
             GameSpeedManager.Instance.CurrentGameSpeed == EGameSpeed.PAUSED
         )
         {
             return;
         }
+
         StartCoroutine(CountryDataProcessor(DelayInSeconds));
+        CountriesAreUpdating = true;
     }
 
     //Every time the date is incremented, several tasks begin in sequential order.
@@ -70,138 +63,28 @@ public class GameControl : MonoBehaviour
     }
 
     //2. Download the countryData from the database
-    public async void DownloadCountryData(Country country)
-    {
-        string query =
-            @"MATCH (c:Country) WHERE c.name = $CountryName
-            RETURN c";
-
-        IDictionary<string, object> parameters =
-            new Dictionary<string, object> {
-                { "CountryName", country.CountryData.name }
-            };
-
-        IAsyncSession session =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
-
-        try
-        {
-            IResultCursor resultCursor =
-                await session
-                    .RunAsync(query, parameters)
-                    .ContinueWith(task =>
-                    {
-                        if (task.IsFaulted)
-                        {
-                            throw task.Exception;
-                        }
-
-                        return task.Result;
-                    });
-
-            while (await resultCursor.FetchAsync())
-            {
-                await country
-                    .ParseCountryData(resultCursor
-                        .Current[0]
-                        .As<INode>()
-                        .Properties);
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e.Message);
-            Debug.LogError(e.StackTrace);
-        }
-        finally
-        {
-            await session
-                .CloseAsync()
-                .ContinueWith(task =>
-                {
-                    DownloadsComplete++;
-                });
-        }
-    }
-
     //3. Calculate any changes to the countryData
     //4. Upload any changes to the countryData to the database
-    public async void UploadCountryData(Country country)
-    {
-        IAsyncSession session =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
-
-        CountryDataFields = GetFields(country.CountryData);
-
-        string query =
-            "MATCH (c:Country) WHERE c.name = $CountryName SET c = $CountryData";
-
-        IDictionary<string, object> parameters =
-            new Dictionary<string, object> {
-                { "CountryName", country.CountryData.name },
-                { "CountryData", CountryDataFields }
-            };
-
-        try
-        {
-            IResultCursor resultCursor =
-                await session
-                    .RunAsync(query, parameters)
-                    .ContinueWith(task =>
-                    {
-                        if (task.IsFaulted)
-                        {
-                            throw task.Exception;
-                        }
-
-                        return task.Result;
-                    });
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e.Message);
-            Debug.LogError(e.StackTrace);
-        }
-        finally
-        {
-            await session
-                .CloseAsync()
-                .ContinueWith(task =>
-                {
-                    UploadsComplete++;
-                });
-        }
-    }
-
-    private Dictionary<string, object> GetFields(CountryData countryData)
-    {
-        var type = countryData.GetType();
-
-        var fields =
-            type
-                .GetFields()
-                .ToDictionary(field => field.Name,
-                field => field.GetValue(countryData));
-
-        return fields;
-    }
-
     //When all the tasks are completed, the next day begins.
     private IEnumerator DatabaseSetupProcess()
     {
         //Download the country data from the database
         foreach (Country country in CountryList)
         {
-            DownloadCountryData (country);
+            DB
+                .GetCountry(country)
+                .Subscribe(countryData =>
+                {
+                    country.ParseCountryData (countryData);
+                    DownloadsComplete++;
+                });
         }
         yield return new WaitUntil(() =>
                     DownloadsComplete == CountryList.Count);
     }
 
-    //FIXME this Enumerator is having trouble with waiting for each task to complete in sequential order.
     private IEnumerator CountryDataProcessor(float delay)
     {
-        CountriesAreUpdating = true;
         float enumeratorStart = Time.realtimeSinceStartup;
 
         Date = Date.AddDays(1);
@@ -211,12 +94,30 @@ public class GameControl : MonoBehaviour
 
         yield return new WaitForSeconds(.01f);
 
+        Assert.IsTrue(CountryList.Count > 0, "Country list is empty");
+
+        Debug.Log("Done Setting date");
+
         foreach (Country country in CountryList)
         {
-            DownloadCountryData (country);
             if (country.CountryData.tag == "IDF")
             {
-                Debug.Log("Got Money for IDF: " + country.CountryData.money);
+                Debug.Log("Downloading country data for " + country.name);
+            }
+
+            DB
+                .GetCountry(country)
+                .Subscribe(record =>
+                {
+                    country.ParseCountryData (record);
+                    DownloadsComplete++;
+                });
+
+            if (country.CountryData.tag == "IDF")
+            {
+                Debug
+                    .Log("After DOWNLOADS completed, got Money for IDF: " +
+                    country.CountryData.money);
             }
         }
 
@@ -233,30 +134,45 @@ public class GameControl : MonoBehaviour
 
             //calculate the changes to the countryData
             country.CalculateCountryData();
+
+            yield return new WaitUntil(() =>
+                        CalculationsComplete == CountryList.Count);
+
             if (country.CountryData.tag == "IDF")
             {
-                Debug.Log("Got Money for IDF: " + country.CountryData.money);
+                Debug
+                    .Log("After CALCULATIONS completed, got Money for IDF: " +
+                    country.CountryData.money);
             }
         }
-
-        yield return new WaitUntil(() =>
-                    CalculationsComplete == CountryList.Count);
 
         CalculationsComplete = 0;
 
         foreach (Country country in CountryList)
         {
             //upload the changes to the database
-            UploadCountryData (country);
+            DB
+                .SetCountry(country)
+                .Subscribe(record =>
+                {
+                    Debug.Log(record.ToString());
+                },
+                () =>
+                {
+                    UploadsComplete++;
+                });
 
-            //FIXME somehow this is not returning the correct value
+            yield return new WaitUntil(() =>
+                        UploadsComplete == CountryList.Count);
+
             if (country.CountryData.tag == "IDF")
             {
-                Debug.Log("Got Money for IDF: " + country.CountryData.money);
+                Debug
+                    .Log("after UPLOADS completed, got Money for IDF: " +
+                    country.CountryData.money);
             }
         }
 
-        yield return new WaitUntil(() => UploadsComplete == CountryList.Count);
         UploadsComplete = 0;
 
         float timeElapsed = Time.realtimeSinceStartup - enumeratorStart;

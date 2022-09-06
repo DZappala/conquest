@@ -1,10 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Assertions;
 using static Utilities;
 
 public class Country : MonoBehaviour
@@ -42,23 +43,40 @@ public class Country : MonoBehaviour
     }
 
     //TODO does this need to be an async function?
-    public async Task ParseCountryData(IReadOnlyDictionary<string, object> DRecord)
+    public void ParseCountryData(IReadOnlyDictionary<string, object> DRecord)
     {
-        await Task.Run(() =>
-        {
+        Assert.IsNotNull(DRecord["tag"], "Country tag is null for " + name);
+
+        Debug.Log("Parsing country data for " + name);
+
             foreach (var keyValuePair in DRecord)
             {
+
                 FieldInfo _fieldInfo = CountryData.GetType().GetField(keyValuePair.Key);
+
                 object _value = keyValuePair.Value;
 
-                if (_fieldInfo != null && _fieldInfo.GetValue(CountryData) != _value)
+                if (_fieldInfo != null)
                 {
                     _fieldInfo
                         .SetValue(CountryData, _value);
                 }
             }
-        });
     }
+
+    public Dictionary<string, object> GetCountryDataFields()
+    {
+        var type = CountryData.GetType();
+
+        var fields =
+            type
+                .GetFields()
+                .ToDictionary(field => field.Name,
+                field => field.GetValue(CountryData));
+
+        return fields;
+    }
+    
 
     public void CalculateCountryData()
     {
