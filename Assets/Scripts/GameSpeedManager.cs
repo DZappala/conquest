@@ -4,14 +4,7 @@ public class GameSpeedManager
 
     public static GameSpeedManager Instance
     {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = new GameSpeedManager();
-            }
-            return _instance;
-        }
+        get { return _instance ??= new GameSpeedManager(); }
     }
 
     public EGameSpeed CurrentGameSpeed { get; private set; }
@@ -24,8 +17,8 @@ public class GameSpeedManager
 
     private GameSpeedManager()
     {
-        CurrentGameSpeed = EGameSpeed.PAUSED;
-        PreviousGameSpeed = EGameSpeed.PAUSED;
+        CurrentGameSpeed = EGameSpeed.Paused;
+        PreviousGameSpeed = EGameSpeed.Paused;
     }
 
     public void SetGameSpeed(EGameSpeed newGameSpeed)

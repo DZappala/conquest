@@ -1,28 +1,28 @@
-using System.Reflection;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class SpeedDisplay : MonoBehaviour
 {
-    public Image SD_Pause;
+    [FormerlySerializedAs("SD_Pause")] public Image sdPause;
 
-    public Image SD_Slow;
+    [FormerlySerializedAs("SD_Slow")] public Image sdSlow;
 
-    public Image SD_Normal;
+    [FormerlySerializedAs("SD_Normal")] public Image sdNormal;
 
-    public Image SD_Fast;
+    [FormerlySerializedAs("SD_Fast")] public Image sdFast;
 
-    public Image SD_SuperFast;
+    [FormerlySerializedAs("SD_SuperFast")] public Image sdSuperFast;
 
-    private Color SD_PauseColor;
+    private Color _sdPauseColor;
 
-    private Color SD_SlowColor;
+    private Color _sdSlowColor;
 
-    private Color SD_NormalColor;
+    private Color _sdNormalColor;
 
-    private Color SD_FastColor;
+    private Color _sdFastColor;
 
-    private Color SD_SuperFastColor;
+    private Color _sdSuperFastColor;
 
     public void Awake()
     {
@@ -31,11 +31,11 @@ public class SpeedDisplay : MonoBehaviour
 
     public void Start()
     {
-        SD_PauseColor = SD_Pause.color;
-        SD_SlowColor = SD_Slow.color;
-        SD_NormalColor = SD_Normal.color;
-        SD_FastColor = SD_Fast.color;
-        SD_SuperFastColor = SD_SuperFast.color;
+        _sdPauseColor = sdPause.color;
+        _sdSlowColor = sdSlow.color;
+        _sdNormalColor = sdNormal.color;
+        _sdFastColor = sdFast.color;
+        _sdSuperFastColor = sdSuperFast.color;
     }
 
     public void OnDestroy()
@@ -57,52 +57,53 @@ public class SpeedDisplay : MonoBehaviour
         //set the opacity of the image whose name matches the current game speed to 1
         switch (GameSpeedManager.Instance.CurrentGameSpeed)
         {
-            case EGameSpeed.PAUSED:
-                SD_Pause.color =
-                    new Color(SD_PauseColor.r,
-                        SD_PauseColor.g,
-                        SD_PauseColor.b,
+            case EGameSpeed.Paused:
+                sdPause.color =
+                    new Color(_sdPauseColor.r,
+                        _sdPauseColor.g,
+                        _sdPauseColor.b,
                         1);
-                image = SD_Pause;
+                image = sdPause;
                 break;
-            case EGameSpeed.SLOW:
-                SD_Slow.color =
-                    new Color(SD_SlowColor.r,
-                        SD_SlowColor.g,
-                        SD_SlowColor.b,
+            case EGameSpeed.Slow:
+                sdSlow.color =
+                    new Color(_sdSlowColor.r,
+                        _sdSlowColor.g,
+                        _sdSlowColor.b,
                         1);
-                image = SD_Slow;
+                image = sdSlow;
                 break;
-            case EGameSpeed.NORMAL:
-                SD_Normal.color =
-                    new Color(SD_NormalColor.r,
-                        SD_NormalColor.g,
-                        SD_NormalColor.b,
+            case EGameSpeed.Normal:
+                sdNormal.color =
+                    new Color(_sdNormalColor.r,
+                        _sdNormalColor.g,
+                        _sdNormalColor.b,
                         1);
-                image = SD_Normal;
+                image = sdNormal;
                 break;
-            case EGameSpeed.FAST:
-                SD_Fast.color =
-                    new Color(SD_FastColor.r,
-                        SD_FastColor.g,
-                        SD_FastColor.b,
+            case EGameSpeed.Fast:
+                sdFast.color =
+                    new Color(_sdFastColor.r,
+                        _sdFastColor.g,
+                        _sdFastColor.b,
                         1);
-                image = SD_Fast;
+                image = sdFast;
                 break;
-            case EGameSpeed.SUPERFAST:
-                SD_SuperFast.color =
-                    new Color(SD_SuperFastColor.r,
-                        SD_SuperFastColor.g,
-                        SD_SuperFastColor.b,
+            case EGameSpeed.Superfast:
+                sdSuperFast.color =
+                    new Color(_sdSuperFastColor.r,
+                        _sdSuperFastColor.g,
+                        _sdSuperFastColor.b,
                         1);
-                image = SD_SuperFast;
+                image = sdSuperFast;
                 break;
         }
 
         //set the opacity of all the other images to .5
-        foreach (Image otherImage in GetComponentsInChildren<Image>())
+        foreach (var otherImage in GetComponentsInChildren<Image>())
         {
-            if (otherImage.name != image.name && image != null)
+            if (image == null) continue;
+            if (otherImage.name != image.name)
             {
                 otherImage.color =
                     new Color(otherImage.color.r,

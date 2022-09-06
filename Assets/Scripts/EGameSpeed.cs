@@ -1,8 +1,8 @@
 public enum EGameSpeed
 {
-    PAUSED,
-    SLOW,
-    NORMAL,
-    FAST,
-    SUPERFAST
+    Paused,
+    Slow,
+    Normal,
+    Fast,
+    Superfast
 }

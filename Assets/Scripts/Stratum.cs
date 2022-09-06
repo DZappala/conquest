@@ -1,127 +1,118 @@
 //Stratum.cs
 
 using System.Collections.Generic;
-using UnityEngine; //Access to Debug.Log (don't use any other UnityEngine classes, may break)
+
+//Access to Debug.Log (don't use any other UnityEngine classes, may break)
 
 public class Stratum
 {
-    public Workers workers;
+    public readonly Workers Workers;
 
-    public Government government;
+    public readonly Government Government;
 
     public Stratum()
     {
-        workers = new Workers();
-        government = new Government();
+        Workers = new Workers();
+        Government = new Government();
     }
 }
 
 public class Workers
 {
-    public Good Food;
-
-    public Good Housing;
-
-    public Strata_Base strata;
+    public readonly StrataBase Strata;
 
 // Constructor //
     public Workers()
     {
-        Food = new("Food", 10);
-        Housing = new("Housing", 10);
+        Good food = new("Food", 10);
+        Good housing = new("Housing", 10);
 
-        strata = new();
+        Strata = new StrataBase();
 
-        strata.AddNeed(Food);
-        strata.AddNeed(Housing);
+        Strata.AddNeed(food);
+        Strata.AddNeed(housing);
     }
 }
 
 public class Government
 {
-    public Good
-
-            Money,
-            Food,
-            Housing;
-
-    public Strata_Base strata;
+    public readonly StrataBase Strata;
 
 // Constructor //
     public Government()
     {
-        Money = new("Money", 10);
-        Food = new("Food", 5);
-        Housing = new("Housing", 5);
+        Good money = new("Money", 10);
+        Good food = new("Food", 5);
+        Good housing = new("Housing", 5);
 
-        strata = new();
+        Strata = new StrataBase();
 
-        strata.AddNeed(Money);
+        Strata.AddNeed(money);
 
-        strata.AddProduction(Food);
-        strata.AddProduction(Housing);
+        Strata.AddProduction(food);
+        Strata.AddProduction(housing);
     }
 }
 
-public class Strata_Base
+public class StrataBase
 {
     //TODO implement population
     //public double Amount;
-    private readonly Dictionary<string, Good> Needs;
+    private readonly Dictionary<string, Good> _needs;
 
-    private readonly Dictionary<string, Good> Wants;
+    private readonly Dictionary<string, Good> _wants;
 
-    private readonly Dictionary<string, Good> Production;
+    private readonly Dictionary<string, Good> _production;
 
 // Constructor //
-    public Strata_Base()
+    public StrataBase()
     {
-        Needs = new Dictionary<string, Good>();
-        Wants = new Dictionary<string, Good>();
-        Production = new Dictionary<string, Good>();
+        _needs = new Dictionary<string, Good>();
+        _wants = new Dictionary<string, Good>();
+        _production = new Dictionary<string, Good>();
     }
 
 // Utility Functions //
     public void AddNeed(Good good)
     {
-        Needs.Add(good.Name, good);
+        _needs.Add(good.Name, good);
     }
 
     public void AddWant(Good good)
     {
-        Wants.Add(good.Name, good);
+        _wants.Add(good.Name, good);
     }
 
     public void AddProduction(Good good)
     {
-        Production.Add(good.Name, good);
+        _production.Add(good.Name, good);
     }
 
     public Dictionary<string, Good> GetNeeds()
     {
-        return Needs;
+        return _needs;
     }
 
     public Dictionary<string, Good> GetWants()
     {
-        return Wants;
+        return _wants;
     }
 
     public Dictionary<string, Good> GetProduction()
     {
-        return Production;
+        return _production;
     }
 }
 
 public class Good
 {
-    public string Name { get; set; }
-    public double Value { get; set; }
+    public string Name { get; }
+    public double Value { get; }
 
 // Constructor //
-    public Good(string _name, double _value)
+    public Good(string name, double value)
     {
-        Name = _name;
-        Value = _value;
+        Name = name;
+        Value = value;
     }
 }

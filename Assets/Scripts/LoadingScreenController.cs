@@ -3,18 +3,19 @@ using System.Collections;
 using Neo4j.Driver;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class LoadingScreenController : MonoBehaviour
 {
     //public Image LoadingBar;
     // public static bool GameIsLoading = true;
     //public Animator LoadingBarAnimator;
-    public bool DatabaseCleared = false;
+    [FormerlySerializedAs("DatabaseCleared")] public bool databaseCleared;
 
-    public bool DatabaseSetup = false;
+    [FormerlySerializedAs("DatabaseSetup")] public bool databaseSetup;
 
     private static readonly IDriver
-        driver =
+        Driver =
             GraphDatabase
                 .Driver("bolt://localhost:7687",
                 AuthTokens.Basic("neo4j", "glory"));
@@ -24,40 +25,40 @@ public class LoadingScreenController : MonoBehaviour
         StartCoroutine(StartDatabaseProcess());
     }
 
-    public IEnumerator StartDatabaseProcess()
+    private IEnumerator StartDatabaseProcess()
     {
         //TODO create loading animation
         //start the loading bar animation
         //LoadingBarAnimator.SetTrigger("Start");
         //wait for database to clear and copy
         ClearDatabase();
-        yield return new WaitWhile(() => DatabaseCleared == false);
+        yield return new WaitWhile(() => databaseCleared == false);
 
         CopyDatabase();
-        yield return new WaitWhile(() => DatabaseSetup == false);
+        yield return new WaitWhile(() => databaseSetup == false);
 
         LoadNextLevel();
     }
 
-    public void LoadNextLevel()
+    private void LoadNextLevel()
     {
         StartCoroutine(Load(SceneManager.GetActiveScene().buildIndex + 1));
     }
 
-    public IEnumerator Load(int levelIndex)
+    private IEnumerator Load(int levelIndex)
     {
         //Load next scene
         SceneManager.LoadScene (levelIndex);
         yield return null;
     }
 
-    public async void ClearDatabase()
+    private async void ClearDatabase()
     {
         var nationalbaselineSession =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
+            Driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
         try
         {
-            IResultCursor nationalbaselineCursor =
+            var nationalbaselineCursor =
                 await nationalbaselineSession
                     .RunAsync("MATCH(a) -[r]-> (), (b) DELETE a, r, b");
         }
@@ -68,21 +69,21 @@ public class LoadingScreenController : MonoBehaviour
         finally
         {
             await nationalbaselineSession.CloseAsync();
-            DatabaseCleared = true;
+            databaseCleared = true;
         }
     }
 
-    public async void CopyDatabase()
+    private async void CopyDatabase()
     {
-        var neo4jSession = driver.AsyncSession(o => o.WithDatabase("neo4j"));
+        var neo4JSession = Driver.AsyncSession(o => o.WithDatabase("neo4j"));
         var nationalbaselineSession =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
+            Driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
         try
         {
-            IResultCursor neo4JCursor =
-                await neo4jSession
+            var neo4JCursor =
+                await neo4JSession
                     .RunAsync("CALL apoc.export.graphml.all('countryData.graphml', {readLabels: true, useTypes: true})");
-            IResultCursor nationalbaselineCursor =
+            var nationalbaselineCursor =
                 await nationalbaselineSession
                     .RunAsync("CALL apoc.import.graphml('countryData.graphml', {readLabels: true, storeNodeIds: true})");
         }
@@ -92,10 +93,11 @@ public class LoadingScreenController : MonoBehaviour
         }
         finally
         {
-            await neo4jSession.CloseAsync();
+            await neo4JSession.CloseAsync();
+            // ReSharper disable ObjectCreationAsStatement
             new WaitForSecondsRealtime(2);
             await nationalbaselineSession.CloseAsync();
-            DatabaseSetup = true;
+            databaseSetup = true;
         }
     }
 }

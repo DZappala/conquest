@@ -1,67 +1,67 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 using static Utilities;
 
 public class Country : MonoBehaviour
 {
     public CountryData CountryData;
 
-    public bool IsPlayerCountry;
+    [FormerlySerializedAs("IsPlayerCountry")]
+    public bool isPlayerCountry;
 
-    public Stratum stratum;
+    private Stratum _stratum;
+    private GameObject _playerPanel;
+    private PlayerDisplay _playerDisplay;
 
     public void Awake()
     {
         gameObject.tag = "Country";
-        CountryData = new()
+        CountryData = new CountryData
         {
-            name = gameObject.name
+            Name = name
         };
 
         gameObject.AddComponent<PolygonCollider2D>();
-
-
     }
 
     public void Start()
     {
-        stratum = new Stratum();
+        _playerPanel = GameObject.FindWithTag("PlayerPanel");
+        _playerDisplay = _playerPanel.GetComponent<PlayerDisplay>();
+
+        _stratum = new Stratum();
     }
 
     public void Update()
     {
-        if (IsPlayerCountry)
+        if (isPlayerCountry)
         {
-            GameObject.FindWithTag("PlayerPanel").GetComponent<PlayerDisplay>().UsePlayerCountryData(CountryData);
+            _playerDisplay.UsePlayerCountryData(CountryData);
         }
     }
 
     //TODO does this need to be an async function?
-    public void ParseCountryData(IReadOnlyDictionary<string, object> DRecord)
+    public void ParseCountryData(IReadOnlyDictionary<string, object> dRecord)
     {
-        Assert.IsNotNull(DRecord["tag"], "Country tag is null for " + name);
+        Assert.IsNotNull(dRecord["tag"], $"Country tag is null for {name}");
 
-        Debug.Log("Parsing country data for " + name);
+        Debug.Log($"Parsing country data for {name}");
 
-            foreach (var keyValuePair in DRecord)
+        foreach (var keyValuePair in dRecord)
+        {
+            var fieldInfo = CountryData.GetType().GetField(keyValuePair.Key);
+
+            var value = keyValuePair.Value;
+
+            if (fieldInfo != null)
             {
-
-                FieldInfo _fieldInfo = CountryData.GetType().GetField(keyValuePair.Key);
-
-                object _value = keyValuePair.Value;
-
-                if (_fieldInfo != null)
-                {
-                    _fieldInfo
-                        .SetValue(CountryData, _value);
-                }
+                fieldInfo
+                    .SetValue(CountryData, value);
             }
+        }
     }
 
     public Dictionary<string, object> GetCountryDataFields()
@@ -72,34 +72,25 @@ public class Country : MonoBehaviour
             type
                 .GetFields()
                 .ToDictionary(field => field.Name,
-                field => field.GetValue(CountryData));
+                    field => field.GetValue(CountryData));
 
         return fields;
     }
-    
+
 
     public void CalculateCountryData()
     {
-
-        var totalWorkerNeeds = GetTotalNeeds(stratum.workers.strata);
-        var totalGovernmentNeeds = GetTotalNeeds(stratum.government.strata);
+        var totalWorkerNeeds = GetTotalNeeds(_stratum.Workers.Strata);
+        var totalGovernmentNeeds = GetTotalNeeds(_stratum.Government.Strata);
         var sumTotalNeeds = totalWorkerNeeds + totalGovernmentNeeds;
 
-        CountryData.money = CalculateGrowthRate(CountryData.money, sumTotalNeeds);
+        CountryData.Money = CalculateGrowthRate(CountryData.Money, sumTotalNeeds);
 
         GameControl.CalculationsComplete++;
-
     }
 
-    public double GetTotalNeeds(Strata_Base strata)
+    private static double GetTotalNeeds(StrataBase strata)
     {
-        double totalNeeds = 0;
-
-        foreach (var need in strata.GetNeeds())
-        {
-            totalNeeds += need.Value.Value;
-        }
-
-        return totalNeeds;
+        return strata.GetNeeds().Sum(need => need.Value.Value);
     }
 }

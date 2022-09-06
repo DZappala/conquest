@@ -2,41 +2,41 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Neo4j.Driver;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 
 public class GameControl : MonoBehaviour
 {
-    public static DateTime Date { get; private set; }
+    private static DateTime Date { get; set; }
 
-    public DateDisplay DateDisplay;
+    [FormerlySerializedAs("DateDisplay")] public DateDisplay dateDisplay;
 
-    private List<Country> CountryList;
+    private List<Country> _countryList;
 
     public static float DelayInSeconds;
 
-    private bool CountriesAreUpdating;
+    private bool _countriesAreUpdating;
 
-    private static int DownloadsComplete = 0;
+    private static int _downloadsComplete;
 
-    public static int CalculationsComplete = 0;
+    public static int CalculationsComplete;
 
-    private static int UploadsComplete = 0;
+    private static int _uploadsComplete;
 
     public void Awake()
     {
         Date = new DateTime(1500, 1, 1);
-        SpeedController.SwitchGameSpeed(EGameSpeed.PAUSED);
+        SpeedController.SwitchGameSpeed(EGameSpeed.Paused);
     }
 
     public void Start()
     {
         //get country list
-        CountryList = FindObjectsOfType<Country>().ToList();
+        _countryList = FindObjectsOfType<Country>().ToList();
 
         //set the date display text
-        UpdateDateDisplay (Date);
+        UpdateDateDisplay(Date);
         StartCoroutine(DatabaseSetupProcess());
     }
 
@@ -44,22 +44,22 @@ public class GameControl : MonoBehaviour
     public void Update()
     {
         if (
-            CountriesAreUpdating ||
-            GameSpeedManager.Instance.CurrentGameSpeed == EGameSpeed.PAUSED
+            _countriesAreUpdating ||
+            GameSpeedManager.Instance.CurrentGameSpeed == EGameSpeed.Paused
         )
         {
             return;
         }
 
         StartCoroutine(CountryDataProcessor(DelayInSeconds));
-        CountriesAreUpdating = true;
+        _countriesAreUpdating = true;
     }
 
     //Every time the date is incremented, several tasks begin in sequential order.
     //1. Update the date display
-    public void UpdateDateDisplay(DateTime date)
+    private void UpdateDateDisplay(DateTime date)
     {
-        DateDisplay.UseDateDisplay (date);
+        dateDisplay.UseDateDisplay(date);
     }
 
     //2. Download the countryData from the database
@@ -69,122 +69,115 @@ public class GameControl : MonoBehaviour
     private IEnumerator DatabaseSetupProcess()
     {
         //Download the country data from the database
-        foreach (Country country in CountryList)
+        foreach (var country in _countryList)
         {
             DB
                 .GetCountry(country)
                 .Subscribe(countryData =>
                 {
-                    country.ParseCountryData (countryData);
-                    DownloadsComplete++;
+                    country.ParseCountryData(countryData);
+                    _downloadsComplete++;
                 });
         }
+
         yield return new WaitUntil(() =>
-                    DownloadsComplete == CountryList.Count);
+            _downloadsComplete == _countryList.Count);
     }
 
+    // ReSharper disable Unity.PerformanceAnalysis
     private IEnumerator CountryDataProcessor(float delay)
     {
-        float enumeratorStart = Time.realtimeSinceStartup;
+        var enumeratorStart = Time.realtimeSinceStartup;
 
         Date = Date.AddDays(1);
-        Debug.Log("Date was incremented to " + Date.ToString("dd MMM yyyy"));
+        Debug.Log($"Date was incremented to {Date:dd MMM yyyy}");
 
-        UpdateDateDisplay (Date);
+        UpdateDateDisplay(Date);
 
         yield return new WaitForSeconds(.01f);
 
-        Assert.IsTrue(CountryList.Count > 0, "Country list is empty");
+        Assert.IsTrue(_countryList.Count > 0, "Country list is empty");
 
         Debug.Log("Done Setting date");
 
-        foreach (Country country in CountryList)
+        foreach (var country in _countryList)
         {
-            if (country.CountryData.tag == "IDF")
+            if (country.CountryData.Tag == "IDF")
             {
-                Debug.Log("Downloading country data for " + country.name);
+                Debug.Log($"Downloading country data for {country.name}");
             }
 
             DB
                 .GetCountry(country)
                 .Subscribe(record =>
                 {
-                    country.ParseCountryData (record);
-                    DownloadsComplete++;
+                    country.ParseCountryData(record);
+                    _downloadsComplete++;
                 });
 
-            if (country.CountryData.tag == "IDF")
+            if (country.CountryData.Tag == "IDF")
             {
                 Debug
-                    .Log("After DOWNLOADS completed, got Money for IDF: " +
-                    country.CountryData.money);
+                    .Log($"After DOWNLOADS completed, got Money for IDF: {country.CountryData.Money}");
             }
         }
 
         yield return new WaitUntil(() =>
-                    DownloadsComplete == CountryList.Count);
+            _downloadsComplete == _countryList.Count);
 
-        DownloadsComplete = 0;
+        _downloadsComplete = 0;
 
-        foreach (Country country in CountryList)
+        foreach (var country in _countryList)
         {
             Assert
-                .IsNotNull(country.CountryData.tag,
-                "Country Data was null for " + country.CountryData.name);
+                .IsNotNull(country.CountryData.Tag,
+                    $"Country Data was null for {country.CountryData.Name}");
 
             //calculate the changes to the countryData
             country.CalculateCountryData();
 
             yield return new WaitUntil(() =>
-                        CalculationsComplete == CountryList.Count);
+                CalculationsComplete == _countryList.Count);
 
-            if (country.CountryData.tag == "IDF")
+            if (country.CountryData.Tag == "IDF")
             {
                 Debug
-                    .Log("After CALCULATIONS completed, got Money for IDF: " +
-                    country.CountryData.money);
+                    .Log($"After CALCULATIONS completed, got Money for IDF: {country.CountryData.Money}");
             }
         }
 
         CalculationsComplete = 0;
 
-        foreach (Country country in CountryList)
+        foreach (var country in _countryList)
         {
             //upload the changes to the database
             DB
                 .SetCountry(country)
-                .Subscribe(record =>
-                {
-                    Debug.Log(record.ToString());
-                },
-                () =>
-                {
-                    UploadsComplete++;
-                });
+                .Subscribe(record => { Debug.Log(record.ToString()); },
+                    () => { _uploadsComplete++; });
 
             yield return new WaitUntil(() =>
-                        UploadsComplete == CountryList.Count);
+                _uploadsComplete == _countryList.Count);
 
-            if (country.CountryData.tag == "IDF")
+            if (country.CountryData.Tag == "IDF")
             {
                 Debug
-                    .Log("after UPLOADS completed, got Money for IDF: " +
-                    country.CountryData.money);
+                    .Log($"after UPLOADS completed, got Money for IDF: {country.CountryData.Money}");
             }
         }
 
-        UploadsComplete = 0;
+        _uploadsComplete = 0;
 
-        float timeElapsed = Time.realtimeSinceStartup - enumeratorStart;
+        var timeElapsed = Time.realtimeSinceStartup - enumeratorStart;
         if (timeElapsed > delay)
         {
-            yield return CountriesAreUpdating = false;
+            yield return _countriesAreUpdating = false;
         }
         else
         {
             delay -= timeElapsed;
             yield return new WaitForSecondsRealtime(delay);
-            yield return CountriesAreUpdating = false;
+            yield return _countriesAreUpdating = false;
         }
     }
 }

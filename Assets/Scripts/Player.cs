@@ -32,7 +32,7 @@ public class Player : MonoBehaviour
         UseInput();
     }
 
-    public void UseInput()
+    private void UseInput()
     {
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
@@ -61,10 +61,12 @@ public class Player : MonoBehaviour
 
         if (Input.GetAxis("Mouse ScrollWheel") != 0f)
         {
-            orthographicCamera.orthographicSize -=
+            float orthographicSize = 0;
+            orthographicSize -=
                 Input.GetAxis("Mouse ScrollWheel") * zoomSpeedFactor;
+            orthographicCamera.orthographicSize = orthographicSize;
             orthographicCamera.orthographicSize =
-                Mathf.Clamp(orthographicCamera.orthographicSize, 10, 100);
+                Mathf.Clamp(orthographicSize, 10, 100);
             var orthographicSizePercentage =
                 orthographicCamera.orthographicSize / 100;
             movementSpeed = originalMovementSpeed * orthographicSizePercentage;
@@ -82,21 +84,19 @@ public class Player : MonoBehaviour
                 Time.deltaTime * movementTime);
     }
 
-    public void SelectCountry()
+    private void SelectCountry()
     {
         Vector2 mousePosition =
             orthographicCamera.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(mousePosition, -Vector2.up);
+        var hit = Physics2D.Raycast(mousePosition, -Vector2.up);
 
         if (hit.collider != null)
         {
-            if (hit.transform.tag == "Country")
-            {
-                var hitCountry = hit.transform.GetComponent<Country>();
-                CountryDisplayManager
-                    .Instance
-                    .SetIsCountrySelected(hitCountry.CountryData);
-            }
+            if (!hit.transform.CompareTag("Country")) return;
+            var hitCountry = hit.transform.GetComponent<Country>();
+            CountryDisplayManager
+                .Instance
+                .SetIsCountrySelected(hitCountry.CountryData);
         }
         else
         {

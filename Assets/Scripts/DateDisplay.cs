@@ -1,13 +1,14 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class DateDisplay : MonoBehaviour
 {
-    public TMP_Text DP_Date;
+    [FormerlySerializedAs("DP_Date")] public TMP_Text dpDate;
 
     public void UseDateDisplay(DateTime date)
     {
-        DP_Date.text = date.ToString("dd MMM yyyy");
+        dpDate.text = date.ToString("dd MMM yyyy");
     }
 }
