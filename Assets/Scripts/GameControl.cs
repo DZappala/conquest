@@ -2,49 +2,47 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using Neo4j.Driver;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 
 public class GameControl : MonoBehaviour
 {
-    public static DateTime Date { get; private set; }
-
-    public DateDisplay DateDisplay;
-
-    public List<Country> CountryList;
-
     public static float DelayInSeconds;
 
-    public bool CountryUpdating;
+    private static int _downloadsComplete;
 
-    public static int DownloadsComplete = 0;
+    public static int CalculationsComplete;
 
-    public static int CalculationsComplete = 0;
+    private static int _uploadsComplete;
 
-    public static int UploadsComplete = 0;
+    private static DB _db;
 
-    private static readonly IDriver
-        driver =
-            GraphDatabase
-                .Driver("bolt://localhost:7687",
-                AuthTokens.Basic("neo4j", "glory"));
+    [FormerlySerializedAs("DateDisplay")] public DateDisplay dateDisplay;
+
+    private bool _countriesAreUpdating;
+
+    private List<Country> _countryList;
+    private static DateTime Date { get; set; }
 
     public void Awake()
     {
         Date = new DateTime(1500, 1, 1);
-        SpeedController.SwitchGameSpeed(EGameSpeed.PAUSED);
+        SpeedController.SwitchGameSpeed(EGameSpeed.Paused);
+
+        _db = new DB();
+        _downloadsComplete = 0;
+        _uploadsComplete = 0;
+        CalculationsComplete = 0;
     }
 
     public void Start()
     {
         //get country list
-        CountryList = FindObjectsOfType<Country>().ToList();
+        _countryList = FindObjectsOfType<Country>().ToList();
 
         //set the date display text
-        UpdateDateDisplay (Date);
+        UpdateDateDisplay(Date);
         StartCoroutine(DatabaseSetupProcess());
     }
 
@@ -52,175 +50,118 @@ public class GameControl : MonoBehaviour
     public void Update()
     {
         if (
-            !CountryUpdating &&
-            GameSpeedManager.Instance.CurrentGameSpeed != EGameSpeed.PAUSED
+            _countriesAreUpdating ||
+            GameSpeedManager.Instance.CurrentGameSpeed == EGameSpeed.Paused
         )
-        {
-            StartCoroutine(CountryDataProcessor(DelayInSeconds));
-        }
+            return;
+
+        StartCoroutine(CountryDataProcessor(DelayInSeconds));
+        _countriesAreUpdating = true;
     }
 
     //Every time the date is incremented, several tasks begin in sequential order.
     //1. Update the date display
-    public void UpdateDateDisplay(DateTime date)
+    private void UpdateDateDisplay(DateTime date)
     {
-        DateDisplay.UseDateDisplay (date);
+        dateDisplay.UseDateDisplay(date);
     }
 
     //2. Download the countryData from the database
-    public async void DownloadCountryData(Country country)
-    {
-        string query =
-            @"MATCH (c:Country) WHERE c.name = $CountryName
-            RETURN c";
-
-        IDictionary<string, object> parameters =
-            new Dictionary<string, object> {
-                { "CountryName", country.CountryData.name }
-            };
-
-        IAsyncSession session =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
-
-        try
-        {
-            IResultCursor resultCursor =
-                await session.RunAsync(query, parameters);
-
-            while (await resultCursor.FetchAsync())
-            {
-                await country
-                    .ParseCountryData(resultCursor
-                        .Current[0]
-                        .As<INode>()
-                        .Properties);
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e.Message);
-            Debug.LogError(e.StackTrace);
-        }
-        finally
-        {
-            await session.CloseAsync();
-            DownloadsComplete++;
-        }
-    }
-
     //3. Calculate any changes to the countryData
     //4. Upload any changes to the countryData to the database
-    public async void UploadCountryData(Country country)
-    {
-        //FIXME is not uploading data to the database by prop. Seems to be running the upload method but skipping any uploads
-        //convert the CountryData of a country to a dictionary for uploading
-        Dictionary<string, object> countryDataProps =
-            country
-                .CountryData
-                .GetType()
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .ToDictionary(prop => prop.Name,
-                prop => prop.GetValue(country.CountryData));
-
-        IAsyncSession session =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
-
-        Assert
-            .IsNotNull(country.CountryData,
-            "Country Data was null for " + country.name);
-
-        try
-        {
-            await session
-                .WriteTransactionAsync(async tx =>
-                {
-                    await tx
-                        .RunAsync(@"MERGE (c:Country {name: $CountryName})
-                    SET c = $CountryData",
-                        new Dictionary<string, object> {
-                            { "CountryName", country.CountryData.name },
-                            { "CountryData", countryDataProps }
-                        });
-                });
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e.Message);
-            Debug.LogError(e.StackTrace);
-        }
-        finally
-        {
-            await session.CloseAsync();
-            UploadsComplete++;
-        }
-    }
-
     //When all the tasks are completed, the next day begins.
+    // ReSharper disable Unity.PerformanceAnalysis
     private IEnumerator DatabaseSetupProcess()
     {
         //Download the country data from the database
-        foreach (Country country in CountryList)
-        {
-            DownloadCountryData (country);
-        }
-        yield return new WaitUntil(() =>
-                    DownloadsComplete == CountryList.Count);
+        foreach (var country in _countryList)
+            _db
+                .GetCountry(country)
+                .Subscribe(countryData =>
+                {
+                    country.ParseCountryData(countryData);
+                    _downloadsComplete++;
+                });
+
+        yield return new WaitUntil(() => _downloadsComplete == _countryList.Count);
+        _downloadsComplete = 0;
     }
 
+    // ReSharper disable Unity.PerformanceAnalysis
     private IEnumerator CountryDataProcessor(float delay)
     {
         var enumeratorStart = Time.realtimeSinceStartup;
 
-        //FIXME: this isn't downloading or uploading data. it's just incrementing the date. It needs to perform these actions synchronously.
-        CountryUpdating = true;
-
         Date = Date.AddDays(1);
-        UpdateDateDisplay (Date);
+
+        UpdateDateDisplay(Date);
 
         yield return new WaitForSeconds(.01f);
 
-        foreach (Country country in CountryList)
-        {
-            DownloadCountryData (country);
-        }
+        Assert.IsTrue(_countryList.Count > 0, "Country list is empty");
+
+        _downloadsComplete = 0;
+
+        Assert.IsTrue(_downloadsComplete == 0, "Download counter was not reset to 0");
+
+        foreach (var country in _countryList)
+            _db
+                .GetCountry(country)
+                .Subscribe(record =>
+                {
+                    country.ParseCountryData(record);
+                    _downloadsComplete++;
+                });
 
         yield return new WaitUntil(() =>
-                    DownloadsComplete == CountryList.Count);
-        DownloadsComplete = 0;
+            _downloadsComplete == _countryList.Count);
 
-        foreach (Country country in CountryList)
+        _downloadsComplete = 0;
+
+        CalculationsComplete = 0;
+        Assert.IsTrue(CalculationsComplete == 0, "Calculations counter was not reset to 0");
+
+        foreach (var country in _countryList)
         {
             Assert
-                .IsNotNull(country.CountryData.tag,
-                "Country Data was null for " + country.name);
+                .IsNotNull(country.CountryData.Tag,
+                    $"Country Data was null for {country.CountryData.Name}");
 
             //calculate the changes to the countryData
             country.CalculateCountryData();
         }
 
         yield return new WaitUntil(() =>
-                    CalculationsComplete == CountryList.Count);
+            CalculationsComplete == _countryList.Count);
+
         CalculationsComplete = 0;
 
-        foreach (Country country in CountryList)
-        {
+        _uploadsComplete = 0;
+        Assert.IsTrue(_uploadsComplete == 0, "Upload counter was not reset to 0");
+        foreach (var country in _countryList)
             //upload the changes to the database
-            UploadCountryData (country);
-        }
+            _db
+                .SetCountry(country)
+                .Subscribe(_ => { _uploadsComplete++; });
 
-        yield return new WaitUntil(() => UploadsComplete == CountryList.Count);
-        UploadsComplete = 0;
+        yield return new WaitUntil(() =>
+            _uploadsComplete == _countryList.Count);
 
-        if ((float)(Time.realtimeSinceStartup - enumeratorStart) > delay)
+        _uploadsComplete = 0;
+
+        if (_downloadsComplete != 0 || _uploadsComplete != 0 || CalculationsComplete != 0)
+            Debug.LogError("Counters were never properly reset, something went wrong");
+
+        var timeElapsed = Time.realtimeSinceStartup - enumeratorStart;
+        if (timeElapsed > delay)
         {
-            yield return null;
+            _countriesAreUpdating = false;
         }
         else
         {
-            delay -= (float)(Time.realtimeSinceStartup - enumeratorStart);
+            delay -= timeElapsed;
             yield return new WaitForSecondsRealtime(delay);
+            _countriesAreUpdating = false;
         }
-
-        CountryUpdating = false;
     }
 }

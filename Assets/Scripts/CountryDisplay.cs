@@ -1,18 +1,20 @@
+using System.Globalization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class CountryDisplay : MonoBehaviour
 {
     //public Country country;
-    public TMP_Text CP_Title;
+    [FormerlySerializedAs("CP_Title")] public TMP_Text cpTitle;
 
-    public TMP_Text CP_GovernmentType;
+    [FormerlySerializedAs("CP_GovernmentType")] public TMP_Text cpGovernmentType;
 
-    public TMP_Text CP_Manpower;
+    [FormerlySerializedAs("CP_Manpower")] public TMP_Text cpManpower;
 
-    public TMP_Text CP_Money;
+    [FormerlySerializedAs("CP_Money")] public TMP_Text cpMoney;
 
-    public CountryData CountryData;
+    private CountryData _countryData;
 
     public void Awake()
     {
@@ -28,8 +30,8 @@ public class CountryDisplay : MonoBehaviour
     {
         if (CountryDisplayManager.Instance.IsCountrySelected)
         {
-            //Hack is there a way to invoke this through the instance instead?
-            OnCountrySelected (CountryData);
+            //HACK is there a way to invoke this through the instance instead?
+            OnCountrySelected (_countryData);
         }
     }
 
@@ -38,7 +40,7 @@ public class CountryDisplay : MonoBehaviour
         CountryDisplayManager.Instance.OnCountrySelected -= OnCountrySelected;
     }
 
-    public void OnCountrySelected(CountryData countryDataFromEventParam)
+    private void OnCountrySelected(CountryData countryDataFromEventParam)
     {
         if (countryDataFromEventParam == null)
         {
@@ -50,14 +52,14 @@ public class CountryDisplay : MonoBehaviour
             gameObject.SetActive(true);
         }
 
-        CountryData = countryDataFromEventParam;
+        _countryData = countryDataFromEventParam;
         UpdateCountryData();
     }
 
-    public void UpdateCountryData()
+    private void UpdateCountryData()
     {
-        CP_Title.text = CountryData.name;
-        CP_GovernmentType.text = CountryData.governmentType;
-        CP_Money.text = CountryData.money.ToString();
+        cpTitle.text = _countryData.Name;
+        cpGovernmentType.text = _countryData.GovernmentType;
+        cpMoney.text = _countryData.Money.ToString(CultureInfo.InvariantCulture);
     }
 }

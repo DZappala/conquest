@@ -1,17 +1,10 @@
 public class CountryDisplayManager
 {
-    public static CountryDisplayManager _instance;
+    private static CountryDisplayManager _instance;
 
     public static CountryDisplayManager Instance
     {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = new CountryDisplayManager();
-            }
-            return _instance;
-        }
+        get { return _instance ??= new CountryDisplayManager(); }
     }
 
     private CountryDisplayManager()
@@ -25,6 +18,7 @@ public class CountryDisplayManager
 
     public event UseCountryDisplay OnCountrySelected;
 
+    // ReSharper disable Unity.PerformanceAnalysis
     public void SetIsCountrySelected(CountryData countryData)
     {
         IsCountrySelected = true;

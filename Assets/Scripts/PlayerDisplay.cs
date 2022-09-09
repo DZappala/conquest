@@ -1,13 +1,15 @@
+using System.Globalization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class PlayerDisplay : MonoBehaviour
 {
-    public TMP_Text PP_Title;
+    [FormerlySerializedAs("PP_Title")] public TMP_Text ppTitle;
 
-    public TMP_Text PP_Gold;
+    [FormerlySerializedAs("PP_Gold")] public TMP_Text ppGold;
 
-    public TMP_Text PP_Manpower;
+    [FormerlySerializedAs("PP_Manpower")] public TMP_Text ppManpower;
 
     public void UsePlayerCountryData(CountryData countryData)
     {
@@ -17,7 +19,7 @@ public class PlayerDisplay : MonoBehaviour
             return;
         }
 
-        PP_Title.text = countryData.name;
-        PP_Gold.text = countryData.money.ToString();
+        ppTitle.text = countryData.Name;
+        ppGold.text = countryData.Money.ToString(CultureInfo.InvariantCulture);
     }
 }

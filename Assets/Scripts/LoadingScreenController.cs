@@ -1,69 +1,67 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Neo4j.Driver;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using Unity.VisualScripting;
+using UnityEngine.Serialization;
 
 public class LoadingScreenController : MonoBehaviour
 {
+    private static readonly IDriver
+        Driver =
+            GraphDatabase
+                .Driver("bolt://localhost:7687",
+                    AuthTokens.Basic("neo4j", "glory"));
+
     //public Image LoadingBar;
     // public static bool GameIsLoading = true;
     //public Animator LoadingBarAnimator;
-    public bool DatabaseCleared = false;
+    [FormerlySerializedAs("DatabaseCleared")]
+    public bool databaseCleared;
 
-    public bool DatabaseSetup = false;
-
-    private static readonly IDriver
-        driver =
-            GraphDatabase
-                .Driver("bolt://localhost:7687",
-                AuthTokens.Basic("neo4j", "glory"));
+    [FormerlySerializedAs("DatabaseSetup")]
+    public bool databaseSetup;
 
     public void Start()
     {
         StartCoroutine(StartDatabaseProcess());
     }
 
-    public IEnumerator StartDatabaseProcess()
+    private IEnumerator StartDatabaseProcess()
     {
+        //TODO create loading animation
         //start the loading bar animation
         //LoadingBarAnimator.SetTrigger("Start");
         //wait for database to clear and copy
         ClearDatabase();
-        yield return new WaitWhile(() => DatabaseCleared == false);
+        yield return new WaitWhile(() => databaseCleared == false);
 
         CopyDatabase();
-        yield return new WaitWhile(() => DatabaseSetup == false);
+        yield return new WaitWhile(() => databaseSetup == false);
 
         LoadNextLevel();
     }
 
-    public void LoadNextLevel()
+    private void LoadNextLevel()
     {
         StartCoroutine(Load(SceneManager.GetActiveScene().buildIndex + 1));
     }
 
-    public IEnumerator Load(int levelIndex)
+    private IEnumerator Load(int levelIndex)
     {
         //Load next scene
-        SceneManager.LoadScene (levelIndex);
+        SceneManager.LoadScene(levelIndex);
         yield return null;
     }
 
-    public async void ClearDatabase()
+    private async void ClearDatabase()
     {
         var nationalbaselineSession =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
+            Driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
         try
         {
-            IResultCursor nationalbaselineCursor =
-                await nationalbaselineSession
-                    .RunAsync("MATCH(a) -[r]-> (), (b) DELETE a, r, b");
+            await nationalbaselineSession
+                .RunAsync("MATCH(a) -[r]-> (), (b) DELETE a, r, b");
         }
         catch (Exception e)
         {
@@ -72,23 +70,22 @@ public class LoadingScreenController : MonoBehaviour
         finally
         {
             await nationalbaselineSession.CloseAsync();
-            DatabaseCleared = true;
+            databaseCleared = true;
         }
     }
 
-    public async void CopyDatabase()
+    private async void CopyDatabase()
     {
-        var neo4jSession = driver.AsyncSession(o => o.WithDatabase("neo4j"));
+        var neo4JSession = Driver.AsyncSession(o => o.WithDatabase("neo4j"));
         var nationalbaselineSession =
-            driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
+            Driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
         try
         {
-            IResultCursor neo4JCursor =
-                await neo4jSession
-                    .RunAsync("CALL apoc.export.graphml.all('countryData.graphml', {readLabels: true, useTypes: true})");
-            IResultCursor nationalbaselineCursor =
-                await nationalbaselineSession
-                    .RunAsync("CALL apoc.import.graphml('countryData.graphml', {readLabels: true, storeNodeIds: true})");
+            await neo4JSession
+                .RunAsync("CALL apoc.export.graphml.all('countryData.graphml', {readLabels: true, useTypes: true})");
+
+            await nationalbaselineSession
+                .RunAsync("CALL apoc.import.graphml('countryData.graphml', {readLabels: true, storeNodeIds: true})");
         }
         catch (Exception e)
         {
@@ -96,9 +93,9 @@ public class LoadingScreenController : MonoBehaviour
         }
         finally
         {
-            await neo4jSession.CloseAsync();
+            await neo4JSession.CloseAsync();
             await nationalbaselineSession.CloseAsync();
-            DatabaseSetup = true;
+            databaseSetup = true;
         }
     }
 }
