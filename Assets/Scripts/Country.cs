@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Serialization;
@@ -7,14 +8,14 @@ using static Utilities;
 
 public class Country : MonoBehaviour
 {
-    public CountryData CountryData;
-
     [FormerlySerializedAs("IsPlayerCountry")]
     public bool isPlayerCountry;
 
-    private Stratum _stratum;
-    private GameObject _playerPanel;
     private PlayerDisplay _playerDisplay;
+    private GameObject _playerPanel;
+
+    private Stratum _stratum;
+    public CountryData CountryData;
 
     public void Awake()
     {
@@ -37,30 +38,21 @@ public class Country : MonoBehaviour
 
     public void Update()
     {
-        if (isPlayerCountry)
-        {
-            _playerDisplay.UsePlayerCountryData(CountryData);
-        }
+        if (isPlayerCountry) _playerDisplay.UsePlayerCountryData(CountryData);
     }
 
-    //TODO does this need to be an async function?
-    public void ParseCountryData(IReadOnlyDictionary<string, object> dRecord)
+    public void ParseCountryData(IReadOnlyDictionary<string, object> record)
     {
-        Assert.IsNotNull(dRecord["tag"], $"Country tag is null for {name}");
+        Assert.IsNotNull(record["tag"], $"Country tag is null for {CountryData.Name}");
 
-        Debug.Log($"Parsing country data for {name}");
-
-        foreach (var keyValuePair in dRecord)
+        foreach (var (key, value) in record)
         {
-            var fieldInfo = CountryData.GetType().GetField(keyValuePair.Key);
-
-            var value = keyValuePair.Value;
+            var keyUpper = key.FirstCharacterToUpper();
+            var fieldInfo = CountryData.GetType().GetField(keyUpper);
 
             if (fieldInfo != null)
-            {
                 fieldInfo
                     .SetValue(CountryData, value);
-            }
         }
     }
 
@@ -68,13 +60,8 @@ public class Country : MonoBehaviour
     {
         var type = CountryData.GetType();
 
-        var fields =
-            type
-                .GetFields()
-                .ToDictionary(field => field.Name,
-                    field => field.GetValue(CountryData));
-
-        return fields;
+        return type.GetFields().ToDictionary(field => char.ToLowerInvariant(field.Name[0]) + field.Name[1..]
+            , field => field.GetValue(CountryData));
     }
 
 

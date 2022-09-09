@@ -8,15 +8,7 @@ using UnityEngine.Serialization;
 
 public class GameControl : MonoBehaviour
 {
-    private static DateTime Date { get; set; }
-
-    [FormerlySerializedAs("DateDisplay")] public DateDisplay dateDisplay;
-
-    private List<Country> _countryList;
-
     public static float DelayInSeconds;
-
-    private bool _countriesAreUpdating;
 
     private static int _downloadsComplete;
 
@@ -24,10 +16,24 @@ public class GameControl : MonoBehaviour
 
     private static int _uploadsComplete;
 
+    private static DB _db;
+
+    [FormerlySerializedAs("DateDisplay")] public DateDisplay dateDisplay;
+
+    private bool _countriesAreUpdating;
+
+    private List<Country> _countryList;
+    private static DateTime Date { get; set; }
+
     public void Awake()
     {
         Date = new DateTime(1500, 1, 1);
         SpeedController.SwitchGameSpeed(EGameSpeed.Paused);
+
+        _db = new DB();
+        _downloadsComplete = 0;
+        _uploadsComplete = 0;
+        CalculationsComplete = 0;
     }
 
     public void Start()
@@ -47,9 +53,7 @@ public class GameControl : MonoBehaviour
             _countriesAreUpdating ||
             GameSpeedManager.Instance.CurrentGameSpeed == EGameSpeed.Paused
         )
-        {
             return;
-        }
 
         StartCoroutine(CountryDataProcessor(DelayInSeconds));
         _countriesAreUpdating = true;
@@ -66,22 +70,21 @@ public class GameControl : MonoBehaviour
     //3. Calculate any changes to the countryData
     //4. Upload any changes to the countryData to the database
     //When all the tasks are completed, the next day begins.
+    // ReSharper disable Unity.PerformanceAnalysis
     private IEnumerator DatabaseSetupProcess()
     {
         //Download the country data from the database
         foreach (var country in _countryList)
-        {
-            DB
+            _db
                 .GetCountry(country)
                 .Subscribe(countryData =>
                 {
                     country.ParseCountryData(countryData);
                     _downloadsComplete++;
                 });
-        }
 
-        yield return new WaitUntil(() =>
-            _downloadsComplete == _countryList.Count);
+        yield return new WaitUntil(() => _downloadsComplete == _countryList.Count);
+        _downloadsComplete = 0;
     }
 
     // ReSharper disable Unity.PerformanceAnalysis
@@ -90,7 +93,6 @@ public class GameControl : MonoBehaviour
         var enumeratorStart = Time.realtimeSinceStartup;
 
         Date = Date.AddDays(1);
-        Debug.Log($"Date was incremented to {Date:dd MMM yyyy}");
 
         UpdateDateDisplay(Date);
 
@@ -98,16 +100,12 @@ public class GameControl : MonoBehaviour
 
         Assert.IsTrue(_countryList.Count > 0, "Country list is empty");
 
-        Debug.Log("Done Setting date");
+        _downloadsComplete = 0;
+
+        Assert.IsTrue(_downloadsComplete == 0, "Download counter was not reset to 0");
 
         foreach (var country in _countryList)
-        {
-            if (country.CountryData.Tag == "IDF")
-            {
-                Debug.Log($"Downloading country data for {country.name}");
-            }
-
-            DB
+            _db
                 .GetCountry(country)
                 .Subscribe(record =>
                 {
@@ -115,17 +113,13 @@ public class GameControl : MonoBehaviour
                     _downloadsComplete++;
                 });
 
-            if (country.CountryData.Tag == "IDF")
-            {
-                Debug
-                    .Log($"After DOWNLOADS completed, got Money for IDF: {country.CountryData.Money}");
-            }
-        }
-
         yield return new WaitUntil(() =>
             _downloadsComplete == _countryList.Count);
 
         _downloadsComplete = 0;
+
+        CalculationsComplete = 0;
+        Assert.IsTrue(CalculationsComplete == 0, "Calculations counter was not reset to 0");
 
         foreach (var country in _countryList)
         {
@@ -135,49 +129,39 @@ public class GameControl : MonoBehaviour
 
             //calculate the changes to the countryData
             country.CalculateCountryData();
-
-            yield return new WaitUntil(() =>
-                CalculationsComplete == _countryList.Count);
-
-            if (country.CountryData.Tag == "IDF")
-            {
-                Debug
-                    .Log($"After CALCULATIONS completed, got Money for IDF: {country.CountryData.Money}");
-            }
         }
+
+        yield return new WaitUntil(() =>
+            CalculationsComplete == _countryList.Count);
 
         CalculationsComplete = 0;
 
+        _uploadsComplete = 0;
+        Assert.IsTrue(_uploadsComplete == 0, "Upload counter was not reset to 0");
         foreach (var country in _countryList)
-        {
             //upload the changes to the database
-            DB
+            _db
                 .SetCountry(country)
-                .Subscribe(record => { Debug.Log(record.ToString()); },
-                    () => { _uploadsComplete++; });
+                .Subscribe(_ => { _uploadsComplete++; });
 
-            yield return new WaitUntil(() =>
-                _uploadsComplete == _countryList.Count);
-
-            if (country.CountryData.Tag == "IDF")
-            {
-                Debug
-                    .Log($"after UPLOADS completed, got Money for IDF: {country.CountryData.Money}");
-            }
-        }
+        yield return new WaitUntil(() =>
+            _uploadsComplete == _countryList.Count);
 
         _uploadsComplete = 0;
+
+        if (_downloadsComplete != 0 || _uploadsComplete != 0 || CalculationsComplete != 0)
+            Debug.LogError("Counters were never properly reset, something went wrong");
 
         var timeElapsed = Time.realtimeSinceStartup - enumeratorStart;
         if (timeElapsed > delay)
         {
-            yield return _countriesAreUpdating = false;
+            _countriesAreUpdating = false;
         }
         else
         {
             delay -= timeElapsed;
             yield return new WaitForSecondsRealtime(delay);
-            yield return _countriesAreUpdating = false;
+            _countriesAreUpdating = false;
         }
     }
 }

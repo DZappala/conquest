@@ -7,18 +7,20 @@ using UnityEngine.Serialization;
 
 public class LoadingScreenController : MonoBehaviour
 {
-    //public Image LoadingBar;
-    // public static bool GameIsLoading = true;
-    //public Animator LoadingBarAnimator;
-    [FormerlySerializedAs("DatabaseCleared")] public bool databaseCleared;
-
-    [FormerlySerializedAs("DatabaseSetup")] public bool databaseSetup;
-
     private static readonly IDriver
         Driver =
             GraphDatabase
                 .Driver("bolt://localhost:7687",
-                AuthTokens.Basic("neo4j", "glory"));
+                    AuthTokens.Basic("neo4j", "glory"));
+
+    //public Image LoadingBar;
+    // public static bool GameIsLoading = true;
+    //public Animator LoadingBarAnimator;
+    [FormerlySerializedAs("DatabaseCleared")]
+    public bool databaseCleared;
+
+    [FormerlySerializedAs("DatabaseSetup")]
+    public bool databaseSetup;
 
     public void Start()
     {
@@ -48,7 +50,7 @@ public class LoadingScreenController : MonoBehaviour
     private IEnumerator Load(int levelIndex)
     {
         //Load next scene
-        SceneManager.LoadScene (levelIndex);
+        SceneManager.LoadScene(levelIndex);
         yield return null;
     }
 
@@ -58,9 +60,8 @@ public class LoadingScreenController : MonoBehaviour
             Driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
         try
         {
-            var nationalbaselineCursor =
-                await nationalbaselineSession
-                    .RunAsync("MATCH(a) -[r]-> (), (b) DELETE a, r, b");
+            await nationalbaselineSession
+                .RunAsync("MATCH(a) -[r]-> (), (b) DELETE a, r, b");
         }
         catch (Exception e)
         {
@@ -80,12 +81,11 @@ public class LoadingScreenController : MonoBehaviour
             Driver.AsyncSession(o => o.WithDatabase("nationalbaseline"));
         try
         {
-            var neo4JCursor =
-                await neo4JSession
-                    .RunAsync("CALL apoc.export.graphml.all('countryData.graphml', {readLabels: true, useTypes: true})");
-            var nationalbaselineCursor =
-                await nationalbaselineSession
-                    .RunAsync("CALL apoc.import.graphml('countryData.graphml', {readLabels: true, storeNodeIds: true})");
+            await neo4JSession
+                .RunAsync("CALL apoc.export.graphml.all('countryData.graphml', {readLabels: true, useTypes: true})");
+
+            await nationalbaselineSession
+                .RunAsync("CALL apoc.import.graphml('countryData.graphml', {readLabels: true, storeNodeIds: true})");
         }
         catch (Exception e)
         {
@@ -94,8 +94,6 @@ public class LoadingScreenController : MonoBehaviour
         finally
         {
             await neo4JSession.CloseAsync();
-            // ReSharper disable ObjectCreationAsStatement
-            new WaitForSecondsRealtime(2);
             await nationalbaselineSession.CloseAsync();
             databaseSetup = true;
         }
