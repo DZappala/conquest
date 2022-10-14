@@ -1,24 +1,23 @@
 public class CountryDisplayManager
 {
-    private static CountryDisplayManager _instance;
+    public delegate void UseCountryDisplay(CountryData countryData);
 
-    public static CountryDisplayManager Instance
-    {
-        get { return _instance ??= new CountryDisplayManager(); }
-    }
+    private static CountryDisplayManager _instance;
 
     private CountryDisplayManager()
     {
         IsCountrySelected = false;
     }
 
-    public bool IsCountrySelected { get; private set; }
+    public static CountryDisplayManager Instance
+    {
+        get { return _instance ??= new(); }
+    }
 
-    public delegate void UseCountryDisplay(CountryData countryData);
+    public bool IsCountrySelected { get; set; }
 
-    public event UseCountryDisplay OnCountrySelected;
+    public event UseCountryDisplay OnCountrySelected; // ReSharper disable Unity.PerformanceAnalysis
 
-    // ReSharper disable Unity.PerformanceAnalysis
     public void SetIsCountrySelected(CountryData countryData)
     {
         IsCountrySelected = true;

@@ -1,25 +1,31 @@
-using System.Globalization;
-using TMPro;
-using UnityEngine;
-using UnityEngine.Serialization;
-
-public class PlayerDisplay : MonoBehaviour
-{
-    [FormerlySerializedAs("PP_Title")] public TMP_Text ppTitle;
-
-    [FormerlySerializedAs("PP_Gold")] public TMP_Text ppGold;
-
-    [FormerlySerializedAs("PP_Manpower")] public TMP_Text ppManpower;
-
-    public void UsePlayerCountryData(CountryData countryData)
-    {
-        if (countryData == null)
-        {
-            Debug.LogError("Country data is null");
-            return;
-        }
-
-        ppTitle.text = countryData.Name;
-        ppGold.text = countryData.Money.ToString(CultureInfo.InvariantCulture);
-    }
-}
+// using UnityEngine;
+// using UnityEngine.UIElements;
+//
+// public class PlayerDisplay : MonoBehaviour
+// {
+//     private Label _ppMoney;
+//
+//     private Label _ppName;
+//     private Label _ppPopulation;
+//
+//     private void Start()
+//     {
+//         var root = GetComponent<UIDocument>().rootVisualElement;
+//         _ppMoney = root.Q<Label>("PPMoney");
+//         _ppName = root.Q<Label>("PPName");
+//         _ppPopulation = root.Q<Label>("PPPopulation");
+//     }
+//
+//     public void UsePlayerCountryData(CountryData countryData)
+//     {
+//         if (countryData == null)
+//         {
+//             Debug.LogError("Country data is null");
+//             return;
+//         }
+//
+//         _ppName.text = countryData.Name;
+//         _ppMoney.text = countryData.Money.ToString("F1");
+//         _ppPopulation.text = countryData.Population.ToString("F1");
+//     }
+// }

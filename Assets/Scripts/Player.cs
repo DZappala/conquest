@@ -1,30 +1,27 @@
 using UnityEngine;
+using static UnityEngine.Vector3;
+using static UnityEngine.Mathf;
 
 public class Player : MonoBehaviour
 {
     public Camera orthographicCamera;
-
     public float movementSpeed;
-
     public float originalMovementSpeed;
-
     public float movementTime;
+    public float zoomSensitivity;
+    private Vector3 _newPosition;
+    private float _orthographicSize;
+    private UIMain _uiMain;
 
-    public Vector3 newPosition;
-
-    public float zoomSpeedFactor;
-
-    public GameObject countryDisplay;
-
-    public bool selectedCountry;
 
     public void Start()
     {
-        newPosition = transform.position;
+        _newPosition = transform.position;
         orthographicCamera = GetComponent<Camera>();
         originalMovementSpeed = movementSpeed;
+        _orthographicSize = orthographicCamera.orthographicSize;
 
-        countryDisplay = GameObject.FindWithTag("CountryPanel");
+        _uiMain = GameObject.Find("UIMain").GetComponent<UIMain>();
     }
 
     public void Update()
@@ -34,73 +31,42 @@ public class Player : MonoBehaviour
 
     private void UseInput()
     {
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-        {
-            newPosition += transform.up * movementSpeed;
-        }
-
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-        {
-            newPosition += transform.up * -movementSpeed;
-        }
-
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) _newPosition += transform.up * movementSpeed;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) _newPosition += transform.up * -movementSpeed;
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-        {
-            newPosition += transform.right * -movementSpeed;
-        }
-
+            _newPosition += transform.right * -movementSpeed;
         if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            _newPosition += transform.right * movementSpeed;
+        if (Input.GetKey(KeyCode.Escape)) _uiMain.CloseLastWindow();
+        if (Input.GetAxis("Mouse ScrollWheel") != 0)
         {
-            newPosition += transform.right * movementSpeed;
+            _orthographicSize += Input.mouseScrollDelta.y * zoomSensitivity;
+            orthographicCamera.orthographicSize = _orthographicSize;
+            orthographicCamera.orthographicSize = Clamp(_orthographicSize, 50f, 100f);
+
+            var percentage = orthographicCamera.orthographicSize / 100;
+            movementSpeed = originalMovementSpeed * percentage;
         }
 
-        if (Input.GetKey(KeyCode.Escape))
-        {
-            countryDisplay.SetActive(false);
-        }
-
-        if (Input.GetAxis("Mouse ScrollWheel") != 0f)
-        {
-            float orthographicSize = 0;
-            orthographicSize -=
-                Input.GetAxis("Mouse ScrollWheel") * zoomSpeedFactor;
-            orthographicCamera.orthographicSize = orthographicSize;
-            orthographicCamera.orthographicSize =
-                Mathf.Clamp(orthographicSize, 10, 100);
-            var orthographicSizePercentage =
-                orthographicCamera.orthographicSize / 100;
-            movementSpeed = originalMovementSpeed * orthographicSizePercentage;
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            SelectCountry();
-        }
+        if (Input.GetMouseButtonDown(1)) SelectCountry();
 
         transform.position =
-            Vector3
-                .Lerp(transform.position,
-                newPosition,
+            Lerp(transform.position,
+                _newPosition,
                 Time.deltaTime * movementTime);
     }
 
     private void SelectCountry()
     {
-        Vector2 mousePosition =
+        var mousePosition =
             orthographicCamera.ScreenToWorldPoint(Input.mousePosition);
         var hit = Physics2D.Raycast(mousePosition, -Vector2.up);
 
-        if (hit.collider != null)
-        {
-            if (!hit.transform.CompareTag("Country")) return;
-            var hitCountry = hit.transform.GetComponent<Country>();
-            CountryDisplayManager
-                .Instance
-                .SetIsCountrySelected(hitCountry.CountryData);
-        }
-        else
-        {
-            countryDisplay.SetActive(false);
-        }
+        if (hit.collider == null) return;
+        if (!hit.transform.CompareTag("Country")) return;
+        var hitCountry = hit.transform.GetComponent<Country>();
+        CountryDisplayManager
+            .Instance
+            .SetIsCountrySelected(hitCountry.CountryData);
     }
 }

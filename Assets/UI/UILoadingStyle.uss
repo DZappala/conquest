@@ -1,0 +1,21 @@
+#unity-progress-bar {
+    background-color: #353B48;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.unity-progress-bar__background {
+    background-color: #353B48;
+    border-width: 0;
+}
+
+.unity-progress-bar__progress {
+    background-color: #44BD32;
+}
+
+Label {
+    color: azure;
+
+}

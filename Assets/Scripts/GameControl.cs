@@ -4,40 +4,36 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 
 public class GameControl : MonoBehaviour
 {
     public static float DelayInSeconds;
-
     private static int _downloadsComplete;
-
     public static int CalculationsComplete;
-
     private static int _uploadsComplete;
-
     private static DB _db;
-
-    [FormerlySerializedAs("DateDisplay")] public DateDisplay dateDisplay;
-
+    public static double DaysPassed;
     private bool _countriesAreUpdating;
-
     private List<Country> _countryList;
+    private UIMain _uiMain;
     private static DateTime Date { get; set; }
 
     public void Awake()
     {
-        Date = new DateTime(1500, 1, 1);
+        Date = new(1500, 1, 1);
         SpeedController.SwitchGameSpeed(EGameSpeed.Paused);
 
-        _db = new DB();
+        _db = new();
         _downloadsComplete = 0;
         _uploadsComplete = 0;
         CalculationsComplete = 0;
+        DaysPassed = 0;
     }
 
     public void Start()
     {
+        _uiMain = GameObject.Find("UIMain").GetComponent<UIMain>();
+
         //get country list
         _countryList = FindObjectsOfType<Country>().ToList();
 
@@ -63,7 +59,7 @@ public class GameControl : MonoBehaviour
     //1. Update the date display
     private void UpdateDateDisplay(DateTime date)
     {
-        dateDisplay.UseDateDisplay(date);
+        _uiMain.UseDateDisplay(date);
     }
 
     //2. Download the countryData from the database
@@ -80,6 +76,7 @@ public class GameControl : MonoBehaviour
                 .Subscribe(countryData =>
                 {
                     country.ParseCountryData(countryData);
+                    country.initialPopulation = country.CountryData.Population;
                     _downloadsComplete++;
                 });
 
@@ -93,6 +90,7 @@ public class GameControl : MonoBehaviour
         var enumeratorStart = Time.realtimeSinceStartup;
 
         Date = Date.AddDays(1);
+        DaysPassed++;
 
         UpdateDateDisplay(Date);
 
@@ -137,7 +135,9 @@ public class GameControl : MonoBehaviour
         CalculationsComplete = 0;
 
         _uploadsComplete = 0;
+
         Assert.IsTrue(_uploadsComplete == 0, "Upload counter was not reset to 0");
+
         foreach (var country in _countryList)
             //upload the changes to the database
             _db

@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/UIMainStyle.uss?fileID=7433441132597879392&amp;guid=1427a5af39d824350b0389e5e2a720a6&amp;type=3#UIMainStyle" />
+    <ui:GroupBox name="UIMainContainer" style="align-items: stretch; justify-content: space-between; flex-direction: column; height: 100%; width: 100%; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; flex-wrap: nowrap; -unity-font-definition: none; -unity-font: url(&apos;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=2230732570650464555&amp;guid=3027fd12c0e3d478cb8709ee4f845ecf&amp;type=3#NotInter-Regular&apos;);">
+        <ui:GroupBox name="TopPanel" tabindex="0" style="flex-direction: row; justify-content: space-between; align-items: flex-start; width: auto; height: auto; transform-origin: center; flex-wrap: nowrap; opacity: 1;">
+            <ui:GroupBox name="PlayerPanel" class="roundedBg" style="flex-direction: row; align-items: center; justify-content: flex-start; width: 50%; height: 50px; flex-basis: auto; flex-wrap: nowrap; padding-top: 0; padding-left: 0; padding-right: 10px; padding-bottom: 10px; background-color: rgb(0, 151, 230); border-top-left-radius: 15px; border-bottom-left-radius: 15px; border-top-right-radius: 15px; border-bottom-right-radius: 15px; transform-origin: center;">
+                <ui:Label text="{name}" display-tooltip-when-elided="true" name="PPName" class="first-child" style="font-size: 12px;" />
+                <ui:Label text="{money}" display-tooltip-when-elided="true" name="PPMoney" style="font-size: 12px;" />
+                <ui:Label text="{pop.}" display-tooltip-when-elided="true" name="PPPopulation" style="font-size: 12px;" />
+            </ui:GroupBox>
+            <ui:GroupBox style="width: 25%;" />
+            <ui:GroupBox name="DateSpeedPanel" class="roundedBg" style="flex-direction: column; align-items: flex-end; justify-content: space-between; width: 25%; padding-left: 10px; padding-right: 0; padding-top: 0; padding-bottom: 10px; height: auto; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                <ui:Label text="{date}" display-tooltip-when-elided="true" name="DSPDate" style="font-size: 24px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; height: auto; width: auto;" />
+                <ui:GroupBox name="SpeedPanel" style="flex-direction: row; justify-content: space-between; align-items: stretch; width: 144px; height: auto; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 8px; margin-right: 8px; margin-top: 8px; margin-bottom: 8px;">
+                    <ui:VisualElement name="SPPaused" style="width: 25px; height: 25px; background-color: rgb(232, 65, 24); flex-direction: column; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;" />
+                    <ui:VisualElement name="SPSlow" style="width: 25px; height: 25px; background-color: rgb(225, 177, 44);" />
+                    <ui:VisualElement name="SPNormal" style="width: 25px; height: 25px; background-color: rgb(76, 209, 55);" />
+                    <ui:VisualElement name="SPFast" style="width: 25px; height: 25px; background-color: rgb(53, 59, 148);" />
+                    <ui:VisualElement name="SPSuperFast" style="width: 25px; height: 25px; background-color: rgb(140, 86, 230);" />
+                </ui:GroupBox>
+            </ui:GroupBox>
+        </ui:GroupBox>
+        <ui:GroupBox name="CountryPanel" class="roundedBg" style="transform-origin: left bottom; translate: 0 0; width: 20%; height: 50%;">
+            <ui:Label text="{name}" display-tooltip-when-elided="true" name="CPName" style="font-size: 24px;" />
+            <ui:Label text="{money}" display-tooltip-when-elided="true" name="CPMoney" style="font-size: 12px;" />
+            <ui:Label text="{pop.}" display-tooltip-when-elided="true" name="CPPopulation" style="font-size: 12px;" />
+        </ui:GroupBox>
+    </ui:GroupBox>
+</ui:UXML>

@@ -4,41 +4,39 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Serialization;
-using static Utilities;
 
 public class Country : MonoBehaviour
 {
     [FormerlySerializedAs("IsPlayerCountry")]
     public bool isPlayerCountry;
 
-    private PlayerDisplay _playerDisplay;
-    private GameObject _playerPanel;
-
+    public double initialPopulation;
+    private Growth _growth;
     private Stratum _stratum;
+    private UIMain _uiMain;
     public CountryData CountryData;
 
     public void Awake()
     {
         gameObject.tag = "Country";
-        CountryData = new CountryData
+        CountryData = new()
         {
             Name = name
         };
 
         gameObject.AddComponent<PolygonCollider2D>();
+        _growth = new();
     }
 
     public void Start()
     {
-        _playerPanel = GameObject.FindWithTag("PlayerPanel");
-        _playerDisplay = _playerPanel.GetComponent<PlayerDisplay>();
-
-        _stratum = new Stratum();
+        _uiMain = GameObject.Find("UIMain").GetComponent<UIMain>();
+        _stratum = new();
     }
 
     public void Update()
     {
-        if (isPlayerCountry) _playerDisplay.UsePlayerCountryData(CountryData);
+        if (isPlayerCountry) _uiMain.UsePlayerCountryData(CountryData);
     }
 
     public void ParseCountryData(IReadOnlyDictionary<string, object> record)
@@ -56,6 +54,7 @@ public class Country : MonoBehaviour
         }
     }
 
+
     public Dictionary<string, object> GetCountryDataFields()
     {
         var type = CountryData.GetType();
@@ -67,12 +66,7 @@ public class Country : MonoBehaviour
 
     public void CalculateCountryData()
     {
-        var totalWorkerNeeds = GetTotalNeeds(_stratum.Workers.Strata);
-        var totalGovernmentNeeds = GetTotalNeeds(_stratum.Government.Strata);
-        var sumTotalNeeds = totalWorkerNeeds + totalGovernmentNeeds;
-
-        CountryData.Money = CalculateGrowthRate(CountryData.Money, sumTotalNeeds);
-
+        CountryData.Population = _growth.CalculateGrowth(CountryData, initialPopulation);
         GameControl.CalculationsComplete++;
     }
 

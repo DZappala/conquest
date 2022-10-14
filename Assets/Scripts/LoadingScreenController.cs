@@ -4,6 +4,7 @@ using Neo4j.Driver;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
+using UnityEngine.UIElements;
 
 public class LoadingScreenController : MonoBehaviour
 {
@@ -22,16 +23,26 @@ public class LoadingScreenController : MonoBehaviour
     [FormerlySerializedAs("DatabaseSetup")]
     public bool databaseSetup;
 
+
+    private ProgressBar _loadProgress;
+
     public void Start()
     {
         StartCoroutine(StartDatabaseProcess());
+        var root = GetComponent<UIDocument>().rootVisualElement;
+        _loadProgress = root.Q<ProgressBar>("LoadProgress");
+        _loadProgress.value = 0;
+    }
+
+    public void Update()
+    {
+        while (!databaseCleared && _loadProgress.value < 50f) _loadProgress.value += 1f;
+
+        while (databaseCleared && !databaseSetup && _loadProgress.value < 100f) _loadProgress.value += 1f;
     }
 
     private IEnumerator StartDatabaseProcess()
     {
-        //TODO create loading animation
-        //start the loading bar animation
-        //LoadingBarAnimator.SetTrigger("Start");
         //wait for database to clear and copy
         ClearDatabase();
         yield return new WaitWhile(() => databaseCleared == false);
@@ -47,7 +58,7 @@ public class LoadingScreenController : MonoBehaviour
         StartCoroutine(Load(SceneManager.GetActiveScene().buildIndex + 1));
     }
 
-    private IEnumerator Load(int levelIndex)
+    private static IEnumerator Load(int levelIndex)
     {
         //Load next scene
         SceneManager.LoadScene(levelIndex);
@@ -61,7 +72,7 @@ public class LoadingScreenController : MonoBehaviour
         try
         {
             await nationalbaselineSession
-                .RunAsync("MATCH(a) -[r]-> (), (b) DELETE a, r, b");
+                .RunAsync("MATCH(n) DETACH DELETE (n)");
         }
         catch (Exception e)
         {

@@ -48,7 +48,7 @@ public class DB : IDisposable
 
     public void Clear()
     {
-        Query query = new("MATCH(a)->[r]->(), (b) RETURN a, r, b");
+        Query query = new("MATCH (n) DETACH DELETE n");
         if (query == null) throw new ArgumentNullException(nameof(query));
 
         using var session =
@@ -59,7 +59,7 @@ public class DB : IDisposable
 
     public void Copy()
     {
-        Query copy = new("CALL apoc.export.graphml.all('countryDAta.graphml', {readLabels: true, useTypes: true})");
+        Query copy = new("CALL apoc.export.graphml.all('countryData.graphml', {readLabels: true, useTypes: true})");
         if (copy == null) throw new ArgumentNullException(nameof(copy));
 
         Query paste = new("CALL apoc.import.graphml('countryData.graphml', {readLabels: true, useTypes: true})");

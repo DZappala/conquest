@@ -1,28 +1,27 @@
 public class CountryData
 {
-    public string Tag;
-
-    public string Name;
+    public double Aristocrats;
 
     public string Capital;
 
-    //public string language;
-    public double Population;
+    public double Food;
+
+    public double Government;
 
     public string GovernmentType;
+    public double Housing;
 
-    public double Money;
-
-    //public double GrowthRate; //TODO add to db
-    //public double GrowthMaximum; //TODO add to db
-    //Stratum
     public double Impoverished;
-
-    public double Workers;
 
     public double Merchants;
 
-    public double Aristocrats;
+    public double Money;
 
-    public double Government;
+    public string Name;
+
+    public double Population;
+
+    public string Tag;
+    public double Water;
+    public double Workers;
 }

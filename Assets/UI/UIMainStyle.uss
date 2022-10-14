@@ -1,0 +1,42 @@
+/* Top Panel */
+#TopPanel {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Player Panel */
+#PlayerPanel {
+    width: 50%;
+    margin: 0 auto;
+}
+
+#PlayerPanel > * {
+    padding: 0 10px;
+}
+
+/* Speed Panel */
+#SpeedPanel > * {
+    opacity: 0.5;
+}
+
+.active {
+    opacity: 1;
+}
+
+.roundedBg {
+    border-radius: 15px;
+    background-color: #0097E6;
+}
+
+/* Country Panel */
+#CountryPanel > * {
+    padding: 0 10px 10px 2px;
+
+}
+
+Label {
+    color: azure;
+}
